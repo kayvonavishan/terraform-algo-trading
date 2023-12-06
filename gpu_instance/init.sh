@@ -7,15 +7,15 @@ nvme0n1=`sudo nvme id-ctrl -v /dev/nvme0n1 | grep -Eo vol.*`
 nvme1n1=`sudo nvme id-ctrl -v /dev/nvme1n1 | grep -Eo vol.*`
 nvme2n1=`sudo nvme id-ctrl -v /dev/nvme2n1 | grep -Eo vol.*`
 
-if [[ "$nvme0n1" == "vol00d82797eb00ce5ff" ]]
+if [[ "$nvme0n1" == "vol-0362d4ea505b3444d" ]]
 then
     sudo mkfs -t xfs /dev/nvme0n1
     sudo mount /dev/nvme0n1 /data
-elif [[ "$nvme1n1" == "vol00d82797eb00ce5ff" ]]
+elif [[ "$nvme1n1" == "vol-0362d4ea505b3444d" ]]
 then
     sudo mkfs -t xfs /dev/nvme1n1
     sudo mount /dev/nvme1n1 /data
-elif [[ "$nvme2n1" == "vol00d82797eb00ce5ff" ]]
+elif [[ "$nvme2n1" == "vol-0362d4ea505b3444d" ]]
 then
     sudo mkfs -t xfs /dev/nvme2n1
     sudo mount /dev/nvme2n1 /data
