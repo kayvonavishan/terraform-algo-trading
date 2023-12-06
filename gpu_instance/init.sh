@@ -23,6 +23,7 @@ fi
 
 sudo chown -R ubuntu:ubuntu /data
 echo "cd /data" > /home/ubuntu/.bash_profile
+sudo chown -R ubuntu:ubuntu /home/ubuntu/.bash_profile
 
 ##git config
 sudo -i 
