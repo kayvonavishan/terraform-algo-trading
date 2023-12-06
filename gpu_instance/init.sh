@@ -38,5 +38,4 @@ echo "from notebook.auth import passwd" >> /home/ubuntu/.jupyter/jupyter_noteboo
 echo "password = passwd('avishan')" >> /home/ubuntu/.jupyter/jupyter_notebook_config.py
 echo "c.NotebookApp.password = password" >> /home/ubuntu/.jupyter/jupyter_notebook_config.py
 echo "c.NotebookApp.ip = '0.0.0.0'" >> /home/ubuntu/.jupyter/jupyter_notebook_config.py
-#nohup jupyter notebook
 jupyter notebook &
