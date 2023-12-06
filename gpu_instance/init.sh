@@ -28,7 +28,7 @@ echo "cd /data" > /home/ubuntu/.bash_profile
 sudo -i 
 echo "Defaults:ubuntu env_keep+=SSH_AUTH_SOCK" >> /etc/sudoers
 exit
-eval "$(ssh-agent -s)"cat 
+eval "$(ssh-agent -s)"
 sudo ssh-add -k /data/.ssh/gpu_instance_key_kayvon
 sudo ssh-add -k /data/.ssh/gpu_instance_key_dara
 
