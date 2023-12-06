@@ -13,28 +13,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_instance" "model_training_instance" {
-  # ami           = "ami-0ac1f653c5b6af751"
-  # ami           = "ami-06edc089743b8b36a"
-  ami           = "ami-0abb2a5b978c7cce0"
-  # instance_type = "t3.large"
-  instance_type = "g4dn.xlarge"
-  key_name      = "training-server"
-  subnet_id     = "subnet-00aa2b4ebf4b670ef"
-  user_data     = file("init.sh")
-  vpc_security_group_ids  = [
-    aws_security_group.allow_ssh.id,
-    aws_security_group.open_outbound_traffic.id,
-    aws_security_group.allow_jupyter.id
-  ]
-
-  tags = {
-    Name = "GPU Training Server"
-  }
-
-  # depends_on = ["aws_security_group.allow_ssh","aws_security_group.open_outbound_traffic"]
-}
-
 resource "aws_ebs_volume" "model_training_volume" {
   availability_zone = "us-east-1a"
   size              = 1
@@ -43,12 +21,6 @@ resource "aws_ebs_volume" "model_training_volume" {
   tags = {
     Name = "GPU Training Server"
   }
-}
-
-resource "aws_volume_attachment" "ebs_att" {
-  device_name = "/dev/sdh"
-  volume_id   = aws_ebs_volume.model_training_volume.id
-  instance_id = aws_instance.model_training_instance.id
 }
 
 resource "aws_security_group" "allow_ssh" {
