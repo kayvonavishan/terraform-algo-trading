@@ -23,7 +23,6 @@ fi
 
 sudo chown -R ubuntu:ubuntu /data
 echo "cd /data" > /home/ubuntu/.bash_profile
-sudo chown -R ubuntu:ubuntu /home/ubuntu/.bash_profile
 
 ##git config
 sudo -i 
@@ -32,6 +31,7 @@ exit
 echo 'eval "$(ssh-agent -s)"' >> /home/ubuntu/.bash_profile
 echo "sudo ssh-add -k /data/.ssh/gpu_instance_key_kayvon" >> /home/ubuntu/.bash_profile
 echo "sudo ssh-add -k /data/.ssh/gpu_instance_key_dara" >> /home/ubuntu/.bash_profile
+sudo chown -R ubuntu:ubuntu /home/ubuntu/.bash_profile
 
 source activate pytorch
 jupyter notebook --generate-config
