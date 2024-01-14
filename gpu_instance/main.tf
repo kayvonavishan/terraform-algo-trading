@@ -16,7 +16,8 @@ provider "aws" {
 resource "aws_instance" "model_training_instance" {
   # ami           = "ami-0ac1f653c5b6af751"
   # ami           = "ami-06edc089743b8b36a"
-  ami           = "ami-0abb2a5b978c7cce0"
+  # ami           = "ami-0abb2a5b978c7cce0"
+  ami           = "ami-0dc01e5ac64faac96"
   # instance_type = "t3.large"
   instance_type = "g4dn.xlarge"
   key_name      = "training-server"
