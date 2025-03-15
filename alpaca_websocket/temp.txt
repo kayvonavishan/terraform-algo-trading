@@ -1,0 +1,29 @@
+curl -sf https://binaries.nats.dev/nats-io/natscli/nats@latest | sh
+sudo mv nats /usr/bin
+
+curl -sf https://binaries.nats.dev/nats-io/nats-server/v2@v2.10.20 | sh
+sudo mv nats-server /usr/bin
+
+sudo mkdir /etc/nats
+sudo cat <<EOF > nats-server.conf
+# Port for client connections (default: 4222)
+port: 4222
+
+# HTTP monitoring endpoint (default: 8222)
+http: 8222
+
+# Enable simple authentication
+authorization {
+  user: "natsuser"
+  password: "natspassword"
+}
+EOF
+
+sudo mv nats-server.conf /etc/nats
+
+
+sudo yum update -y 
+sudo yum install python3-pip -y
+pip3 install websockets nats-py
+
+pip install alpaca-py
