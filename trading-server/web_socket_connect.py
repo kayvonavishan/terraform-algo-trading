@@ -154,6 +154,7 @@ async def process_live_bar(live_bar, historical_df):
     global current_window_bars
     # Append the live bar to the current window buffer.
     current_window_bars.append(live_bar)
+    print(f"current_window_bars = {current_window_bars}")
     # Check if the incoming bar is the final bar for the current 15-min window.
     # The cutoff is when minute % 15 equals 14 (e.g., 14, 29, 44, 59).
     if live_bar['agg_timestamp'].minute % 15 == 14:
@@ -183,6 +184,8 @@ async def live_data_handler(msg, historical_df):
     # If necessary, convert the timestamp to US/Eastern (assuming it comes in as UTC):
     live_bar['agg_timestamp'] = live_bar['agg_timestamp'].tz_convert('US/Eastern')
     
+    print(f"decoded live bar = {live_bar}")
+    
     # Process the bar and update historical_df if the window is complete.
     historical_df = await process_live_bar(live_bar, historical_df)
     return historical_df
@@ -195,6 +198,7 @@ async def run_live_trading(historical_df):
     await nc.connect("nats://natsuser:natspassword@54.226.179.43:4222")
     
     async def message_handler(msg):
+        print(msg)
         nonlocal historical_df
         historical_df = await live_data_handler(msg, historical_df)
     
