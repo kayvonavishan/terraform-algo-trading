@@ -12,6 +12,8 @@ port: 4222
 # HTTP monitoring endpoint (default: 8222)
 http: 8222
 
+host: 0.0.0.0
+
 # Enable simple authentication
 authorization {
   user: "natsuser"
@@ -27,3 +29,5 @@ sudo yum install python3-pip -y
 pip3 install websockets nats-py
 
 pip install alpaca-py
+
+nohup nats-server -DV -m 8222 > nats.log 2>&1 &

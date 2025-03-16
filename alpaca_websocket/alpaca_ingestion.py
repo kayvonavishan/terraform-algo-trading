@@ -58,7 +58,7 @@ async def main():
     wss_client.subscribe_bars(bars_data_handler, "FAKEPACA")
     
     # Run the Alpaca websocket client.
-    await wss_client.run()
+    await wss_client._run_forever()
 
 if __name__ == "__main__":
     asyncio.run(main())
