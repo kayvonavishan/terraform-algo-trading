@@ -1,4 +1,44 @@
 sudo yum update -y 
 sudo yum install python3-pip -y
+
+sudo yum install git -y
+
 pip3 install websockets nats-py
 pip3 install alpaca-py
+pip3 install plotly
+pip3 install numba
+pip install tqdm
+pip install matplotlib
+pip install ta
+
+sudo mkdir /home/tmp
+sudo chmod 777 /home/tmp
+sudo TMPDIR=/home/tmp pip install --no-cache-dir torch
+
+sudo yum install gcc -y
+#sudo yum groupinstall "Development Tools"
+sudo yum install python3-devel
+
+curl -L -O https://github.com/ta-lib/ta-lib/releases/download/v0.6.4/ta-lib-0.6.4-src.tar.gz
+tar -xzf ta-lib-0.6.4-src.tar.gz
+cd ta-lib-0.6.4
+./configure
+make
+sudo make install
+
+sudo ln -s /usr/local/lib/libta-lib.so.0 /usr/local/lib/libta_lib.so.0
+sudo ldconfig
+
+
+pip install TA-Lib
+
+
+
+git clone https://kayvonavishan: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@github.com/kayvonavishan/algo-feature-engineering.git
+cd algo_feature_engineering
+pip install .
+
+git clone https://kayvonavishan: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@github.com/kayvonavishan/algo-modeling-v2.git
+
+cd algo-modeling-v2/backup_vscode/deployment
+python3 deployment/web_socket_connect.py
