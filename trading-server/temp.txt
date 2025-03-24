@@ -10,6 +10,12 @@ pip3 install numba
 pip install tqdm
 pip install matplotlib
 pip install ta
+pip install boto3
+pip install catboost
+pip install lightgbm
+pip install xgboost
+pip install psutil
+pip install seaborn
 
 sudo mkdir /home/tmp
 sudo chmod 777 /home/tmp
@@ -42,3 +48,14 @@ git clone https://kayvonavishan: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@github.
 
 cd algo-modeling-v2/backup_vscode/deployment
 python3 deployment/web_socket_connect.py
+
+
+#added temp IAM role to read from S3 buckets
+
+#create env vars
+export SYMBOL=SOXL
+export MODEL_TYPE=long
+export MODEL_NUMBER=1
+export S3_BUCKET=algo-model-deploy
+
+git config set --global remote.origin.url "https://kayvonavishan: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@github.com/kayvonavishan/algo-modeling-v2.git"
