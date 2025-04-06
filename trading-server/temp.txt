@@ -59,3 +59,4 @@ export MODEL_NUMBER=1
 export S3_BUCKET=algo-model-deploy
 
 git config set --global remote.origin.url "https://kayvonavishan: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@github.com/kayvonavishan/algo-modeling-v2.git"
+
