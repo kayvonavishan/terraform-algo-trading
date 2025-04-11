@@ -33,10 +33,10 @@ pip install alpaca-py
 
 nohup nats-server -DV -m 8222 > nats.log 2>&1 &
 
-git clone https://kayvonavishan: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@github.com/kayvonavishan/algo-modeling-v2.git
+git clone https://kayvonavishan:MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git
 
 cd algo-modeling-v2/backup_vscode/deployment
 python3 cd algo-modeling-v2/backup_vscode/deployment/alpaca_ingestion.py
 
-git config set --global remote.origin.url "https://kayvonavishan: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@github.com/kayvonavishan/algo-modeling-v2.git"
+git config set --global remote.origin.url "https://kayvonavishan:MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git"
 
