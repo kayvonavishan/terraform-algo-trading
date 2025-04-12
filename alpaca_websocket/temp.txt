@@ -40,3 +40,4 @@ python3 cd algo-modeling-v2/backup_vscode/deployment/alpaca_ingestion.py
 
 git config set --global remote.origin.url "https://kayvonavishan:MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git"
 
+export S3_BUCKET=algo-model-deploy
