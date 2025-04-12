@@ -31,6 +31,7 @@ pip3 install websockets nats-py
 
 pip install alpaca-py
 
+
 nohup nats-server -DV -m 8222 > nats.log 2>&1 &
 
 git clone https://kayvonavishan:MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git
