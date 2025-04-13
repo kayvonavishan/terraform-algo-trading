@@ -7,7 +7,7 @@ from urllib.parse import quote
 def get_github_token():
     """
     Retrieve the GitHub personal access token from AWS Secrets Manager.
-    The secret is stored as a JSON key-value pair, where the key is "private-kay".
+    The secret is stored as a JSON key-value pair, where the key is "private-key".
     """
     secret_name = os.environ.get("GITHUB_SECRET_ID", "github/key")
     region_name = os.environ.get("AWS_REGION", "us-east-1")
@@ -18,10 +18,10 @@ def get_github_token():
     # Parse the secret JSON string
     secret_dict = json.loads(response["SecretString"])
     
-    # Retrieve the value associated with the key "private-kay"
-    token = secret_dict.get("private-kay")
+    # Retrieve the value associated with the key "private-key"
+    token = secret_dict.get("private-key")
     if not token:
-        raise Exception("The key 'private-kay' was not found in the secret.")
+        raise Exception("The key 'private-key' was not found in the secret.")
     
     return token
 
