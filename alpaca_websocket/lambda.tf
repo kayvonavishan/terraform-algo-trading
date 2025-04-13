@@ -68,7 +68,7 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 resource "aws_lambda_function" "git_clone_lambda" {
   function_name = "GitCloneLambda"
   role          = aws_iam_role.lambda_role.arn
-  handler       = "lambda_function.lambda_handler"
+  handler       = "alpaca_websocket.lambda_function.lambda_handler"
   runtime       = "python3.8"  # Change to your desired Python runtime version
 
   # Path to your deployment package ZIP file
