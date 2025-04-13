@@ -9,7 +9,7 @@ def get_github_token():
     Retrieve the GitHub personal access token from AWS Secrets Manager.
     The secret is stored as a JSON key-value pair, where the key is "private-key".
     """
-    secret_name = os.environ.get("GITHUB_SECRET_ID", "github/key")
+    secret_name = os.environ.get("GITHUB_SECRET_ID", "github/ssh-key")
     region_name = os.environ.get("AWS_REGION", "us-east-1")
     
     client = boto3.client("secretsmanager", region_name=region_name)
