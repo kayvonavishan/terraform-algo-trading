@@ -2,25 +2,45 @@
 # Script: deploy_and_run.sh
 # Description:
 #   1. Retrieves the EC2 instance public IP by filtering with its Name tag.
-#   2. SSHes into the instance and:
-#      a. Fetches the private SSH key from AWS Secrets Manager.
+#   2. Retrieves the algo-deployment.pem file (used for SSH into the EC2 instance) from AWS Secrets Manager.
+#      The secret is named "algo-deployment.pem" and the key containing the PEM is "key".
+#   3. SSHes into the instance and:
+#      a. Fetches the GitHub SSH key from AWS Secrets Manager.
 #      b. Configures SSH to use this key for Git operations.
-#      c. Checks if the repository exists; if not, clones it, or else pulls updates.
+#      c. Checks if the repository exists; if not, clones it; otherwise, pulls updates.
 #      d. Starts the nats-server in the background.
-#      e. Runs the python script 'alpaca_ingestion.py'.
+#      e. Runs the Python script 'alpaca_ingestion.py'.
 #
 # Prerequisites:
 #   - AWS CLI is installed and configured.
+#   - Python is installed and available in your PATH.
 #   - The EC2 instance has an IAM role with permission to access Secrets Manager.
-#   - You have the key to SSH into the instance (specified by KEY_PATH).
+#   - The secrets for the algo-deployment key and the GitHub SSH key are stored in Secrets Manager.
 
 # ---------------------- Configuration Variables -------------------------
-INSTANCE_TAG_NAME="alpaca-instance"
-KEY_PATH="/path/to/algo-deployment.pem"  # Update with the path to your EC2 instance key pair
-SSH_USER="ec2-user"                     # Adjust for your AMI
-SECRET_NAME="github/ssh-key"            # The name of your secret in Secrets Manager
+INSTANCE_TAG_NAME="alpaca-websocket-ingest"
+ALGO_KEY_SECRET="algo-deployment.pem"    # Secret name in Secrets Manager
+SSH_USER="ec2-user"                       # Adjust for your AMI
+GITHUB_SECRET_NAME="github/ssh-key"       # The secret name for the GitHub SSH key in Secrets Manager
 GIT_REPO="git@github.com:kayvonavishan/algo-modeling-v2.git"
 # -------------------------------------------------------------------------
+
+# Retrieve the algo-deployment.pem file from Secrets Manager.
+# The secret is expected to be a JSON object with a "key" property containing the PEM.
+echo "Fetching algo-deployment.pem from Secrets Manager..."
+aws secretsmanager get-secret-value \
+  --secret-id "$ALGO_KEY_SECRET" \
+  --query 'SecretString' \
+  --output text | python -c "import json,sys; print(json.load(sys.stdin)['key'])" > algo-deployment.pem
+
+if [ $? -ne 0 ]; then
+  echo "Error: Could not retrieve algo-deployment.pem from Secrets Manager."
+  exit 1
+fi
+
+# Secure the key file.
+chmod 600 algo-deployment.pem
+KEY_PATH="./algo-deployment.pem"
 
 echo "Fetching the EC2 instance public IP..."
 INSTANCE_IP=$(aws ec2 describe-instances \
@@ -41,14 +61,14 @@ ssh -i "$KEY_PATH" "$SSH_USER@$INSTANCE_IP" << 'EOF'
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 
-# Retrieve the private SSH key from AWS Secrets Manager
+# Retrieve the GitHub SSH key from AWS Secrets Manager.
 echo "Fetching GitHub SSH key from Secrets Manager..."
 aws secretsmanager get-secret-value \
   --secret-id "github/ssh-key" \
   --query 'SecretString' \
   --output text > ~/.ssh/github_rsa
 
-# Secure the key file.
+# Secure the GitHub key file.
 chmod 600 ~/.ssh/github_rsa
 
 # Optionally add GitHub to known hosts to avoid SSH authenticity prompts.
@@ -60,7 +80,7 @@ export GIT_SSH_COMMAND="ssh -i ~/.ssh/github_rsa"
 # Change to the home directory.
 cd ~
 
-# Check if the private repository already exists. If not, clone it; otherwise, pull updates.
+# Check if the repository already exists. If not, clone it; otherwise, pull updates.
 if [ ! -d "algo-modeling-v2" ]; then
   echo "Repository not found. Cloning the repository..."
   git clone "${GIT_REPO}"
@@ -80,5 +100,9 @@ echo "Running alpaca_ingestion.py..."
 python alpaca_ingestion.py
 
 EOF
+
+# Remove the PEM file after it's no longer needed.
+rm -f algo-deployment.pem
+echo "Local algo-deployment.pem removed."
 
 echo "Deployment script complete."

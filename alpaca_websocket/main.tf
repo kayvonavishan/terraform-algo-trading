@@ -63,6 +63,12 @@ resource "aws_iam_role_policy" "secrets_policy" {
 EOF
 }
 
+# Attach the AmazonSSMManagedInstanceCore policy so that the EC2 can use SSM
+resource "aws_iam_role_policy_attachment" "ssm_access" {
+  role       = aws_iam_role.instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 # Create an IAM instance profile to attach the role to the EC2 instance.
 resource "aws_iam_instance_profile" "instance_profile" {
   name = "alpaca_instance_profile"
@@ -85,7 +91,7 @@ resource "aws_instance" "alpaca_instance" {
     "sg-06612080dc355b148",
   ]
   
-  # Attach the IAM instance profile so the instance can access Secrets Manager
+  # Attach the IAM instance profile so the instance can access Secrets Manager and SSM
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
 
   # Optional: Tag your instance for easier identification
