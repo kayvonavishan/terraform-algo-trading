@@ -25,10 +25,9 @@ resource "aws_iam_role" "lambda_role" {
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 }
 
-# Create an IAM policy that allows access to Secrets Manager and CloudWatch Logs
 resource "aws_iam_policy" "lambda_policy" {
   name        = "git_clone_lambda_policy"
-  description = "Allow Lambda function to access Secrets Manager and CloudWatch Logs"
+  description = "Allow Lambda function to access Secrets Manager, CloudWatch Logs, and describe EC2 instances"
   policy      = <<EOF
 {
   "Version": "2012-10-17",
@@ -48,11 +47,18 @@ resource "aws_iam_policy" "lambda_policy" {
         "logs:PutLogEvents"
       ],
       "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Sid": "EC2DescribeInstances",
+      "Effect": "Allow",
+      "Action": "ec2:DescribeInstances",
+      "Resource": "*"
     }
   ]
 }
 EOF
 }
+
 
 # Attach the policy to the IAM role
 resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
