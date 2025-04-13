@@ -1,7 +1,7 @@
 # Specify the AWS provider and region
-provider "aws" {
-  region = var.aws_region
-}
+#provider "aws" {
+#  region = var.aws_region
+#}
 
 ###############################
 # IAM Role and Policy for Lambda
