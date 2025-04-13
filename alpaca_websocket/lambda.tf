@@ -27,7 +27,7 @@ resource "aws_iam_role" "lambda_role" {
 
 resource "aws_iam_policy" "lambda_policy" {
   name        = "git_clone_lambda_policy"
-  description = "Allow Lambda function to access Secrets Manager, CloudWatch Logs, describe EC2 instances, and interact with SSM"
+  description = "Allow Lambda function to access Secrets Manager, CloudWatch Logs, describe EC2 instances, interact with SSM, and manage network interfaces."
   policy      = <<EOF
 {
   "Version": "2012-10-17",
@@ -62,11 +62,24 @@ resource "aws_iam_policy" "lambda_policy" {
         "ssm:GetCommandInvocation"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "EC2NetworkInterfaceManagement",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateNetworkInterface",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DeleteNetworkInterface",
+        "ec2:AssignPrivateIpAddresses",
+        "ec2:UnassignPrivateIpAddresses"
+      ],
+      "Resource": "*"
     }
   ]
 }
 EOF
 }
+
 
 
 
