@@ -27,7 +27,7 @@ resource "aws_iam_role" "lambda_role" {
 
 resource "aws_iam_policy" "lambda_policy" {
   name        = "git_clone_lambda_policy"
-  description = "Allow Lambda function to access Secrets Manager, CloudWatch Logs, and describe EC2 instances"
+  description = "Allow Lambda function to access Secrets Manager, CloudWatch Logs, describe EC2 instances, and interact with SSM"
   policy      = <<EOF
 {
   "Version": "2012-10-17",
@@ -53,11 +53,21 @@ resource "aws_iam_policy" "lambda_policy" {
       "Effect": "Allow",
       "Action": "ec2:DescribeInstances",
       "Resource": "*"
+    },
+    {
+      "Sid": "SSMAccess",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:SendCommand",
+        "ssm:GetCommandInvocation"
+      ],
+      "Resource": "*"
     }
   ]
 }
 EOF
 }
+
 
 
 # Attach the policy to the IAM role

@@ -27,6 +27,7 @@ sudo mv nats-server.conf /etc/nats
 sudo yum update -y 
 sudo yum install python3-pip -y
 sudo yum install git -y
+#sudo yum install amazon-ssm-agent -y 
 pip3 install websockets nats-py
 
 pip install alpaca-py
