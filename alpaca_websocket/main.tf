@@ -90,6 +90,6 @@ resource "aws_instance" "alpaca_instance" {
 
   # Optional: Tag your instance for easier identification
   tags = {
-    Name = "alpaca-instance"
+    Name = "alpaca-websocket-ingest"
   }
 }
