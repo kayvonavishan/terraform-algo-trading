@@ -87,12 +87,9 @@ resource "aws_lambda_function" "git_clone_lambda" {
   handler       = "alpaca_websocket.lambda_function.lambda_handler"
   runtime       = "python3.8"  # Change to your desired Python runtime version
 
-  # Path to your deployment package ZIP file
   filename         = "deployment-package.zip"
   source_code_hash = filebase64sha256("deployment-package.zip")
 
-  # Environment variables for the Lambda function.
-  # Ensure that 'GITHUB_SECRET_ID' matches the name of your secret in Secrets Manager.
   environment {
     variables = {
       GITHUB_SECRET_ID = "github/ssh-key"
@@ -103,7 +100,14 @@ resource "aws_lambda_function" "git_clone_lambda" {
 
   # Adjust the timeout as needed (in seconds)
   timeout = 30
+
+  # VPC configuration connecting Lambda to the same subnet and security group as the EC2 instance
+  vpc_config {
+    subnet_ids         = ["subnet-00aa2b4ebf4b670ef"]
+    security_group_ids = ["sg-06612080dc355b148"]
+  }
 }
+
 
 ###############################
 # (Optional) Outputs
