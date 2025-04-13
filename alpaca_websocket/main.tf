@@ -3,11 +3,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Define variables
-variable "aws_region" {
-  description = "AWS region to deploy in"
-  default     = "us-east-1"  # Change as needed.
-}
 
 # Data source to find the most recent AMI with the name 'alpaca-websocket-ingest'
 data "aws_ami" "alpaca" {

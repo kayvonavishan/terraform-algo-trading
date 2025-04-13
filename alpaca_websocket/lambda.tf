@@ -3,12 +3,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Define variables
-variable "aws_region" {
-  description = "AWS region to deploy in"
-  default     = "us-east-1"  # Change as needed.
-}
-
 ###############################
 # IAM Role and Policy for Lambda
 ###############################
