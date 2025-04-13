@@ -73,7 +73,7 @@ resource "aws_lambda_function" "git_clone_lambda" {
 
   # Path to your deployment package ZIP file
   filename         = "deployment-package.zip"
-  source_code_hash = filebase64sha256("alpaca_websocket/deployment-package.zip")
+  source_code_hash = filebase64sha256("deployment-package.zip")
 
   # Environment variables for the Lambda function.
   # Ensure that 'GITHUB_SECRET_ID' matches the name of your secret in Secrets Manager.
