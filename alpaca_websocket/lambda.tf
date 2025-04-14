@@ -115,10 +115,10 @@ resource "aws_lambda_function" "git_clone_lambda" {
   timeout = 30
 
   # VPC configuration connecting Lambda to the same subnet and security group as the EC2 instance
-  vpc_config {
-    subnet_ids         = ["subnet-00aa2b4ebf4b670ef"]
-    security_group_ids = ["sg-06612080dc355b148"]
-  }
+  #vpc_config {
+  #  subnet_ids         = ["subnet-00aa2b4ebf4b670ef"]
+  #  security_group_ids = ["sg-06612080dc355b148"]
+  #}
 }
 
 

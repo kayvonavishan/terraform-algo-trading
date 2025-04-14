@@ -14,23 +14,20 @@ echo "Fetching GitHub SSH key from Secrets Manager..."
 aws secretsmanager get-secret-value \
   --secret-id "github/ssh-key" \
   --query 'SecretString' \
-  --output text > ~/.ssh/github_rsa
+  --output text > ~/github_token
 
-chmod 600 ~/.ssh/github_rsa
+export MYSSHKEY=$(jq -r '.["private-key"]' ~/github_token)
 
-# Add GitHub to known hosts.
-ssh-keyscan github.com >> ~/.ssh/known_hosts
+git config set --global remote.origin.url "https://kayvonavishan:${MYSSHKEY}@github.com/kayvonavishan/algo-modeling-v2.git"
 
-# Set the Git SSH command to use the retrieved GitHub key.
-export GIT_SSH_COMMAND="ssh -i ~/.ssh/github_rsa"
 
 # Change to the home directory.
-cd ~
+cd /home/ec2-user
 
 # Check if the repository already exists; if not, clone it; if it does, pull updates.
 if [ ! -d "algo-modeling-v2" ]; then
   echo "Repository not found. Cloning the repository..."
-  git clone "git@github.com:kayvonavishan/algo-modeling-v2.git"
+  git clone https://kayvonavishan:$MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git
   cd algo-modeling-v2
 else
   echo "Repository exists. Pulling latest changes..."
@@ -40,8 +37,8 @@ fi
 
 # Start the NATS server in the background.
 echo "Starting nats-server..."
-nohup nats-server -DV -m 8222 > nats.log 2>&1 &
+nohup nats-server -DV -m 8222 > /home/ec2-user/nats.log 2>&1 &
 
 # Run the Python ingestion script.
 echo "Running alpaca_ingestion.py..."
-python alpaca_ingestion.py
+sudo -u ec2-user /usr/bin/python3 backup_vscode/deployment/alpaca_ingestion.py > /home/ec2-user/ingestion.log 2>&1 &
