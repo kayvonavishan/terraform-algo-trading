@@ -26,7 +26,7 @@ def lambda_handler(event, context):
             raise Exception("Could not find any running instances with tag Name starting with 'trading-server'")
         
         # Read the shell script from the deployment package.
-        script_path = os.path.join(os.getcwd(), "alpaca_websocket", "run.sh")
+        script_path = os.path.join(os.getcwd(), "trading_server", "run.sh")
         with open(script_path, "r") as script_file:
             commands = script_file.read()
 
