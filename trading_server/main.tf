@@ -49,7 +49,7 @@ locals {
 }
 
 output "split_keys" {
-  value = length(local.split_keys)
+  value = local.split_keys
 }
 
 
