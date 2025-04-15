@@ -36,6 +36,12 @@ output "test_parts" {
   value = local.test_parts
 }
 
+output "test_parts_length" {
+  value = length(local.test_parts)
+}
+
+
+
 # Process each S3 object key to extract model attributes.
 locals {
   filtered_keys = [
