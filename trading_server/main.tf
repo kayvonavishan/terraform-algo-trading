@@ -50,8 +50,7 @@ output "model_info_attrs" {
   description = "Map of model information extracted from file prefixes."
   value       = local.model_info_attrs
 }
-       = local.model_info_attrs
-}
+
 
 # Provision an EC2 instance for each model.
 resource "aws_instance" "model_instance" {
