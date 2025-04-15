@@ -9,6 +9,11 @@ data "aws_s3_objects" "models" {
   prefix = "models/"
 }
 
+output "s3_model_object_keys" {
+  description = "List of S3 object keys under the models/ prefix"
+  value       = data.aws_s3_objects.models.keys
+}
+
 # Data source to find the most recent AMI with the name 'trading-server'
 data "aws_ami" "trading_server" {
   most_recent = true
