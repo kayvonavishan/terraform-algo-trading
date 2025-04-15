@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 # Data source to list all objects under the "models/" prefix in the bucket.
-data "aws_s3_bucket_objects" "models" {
+data "aws_s3_objects" "models" {
   bucket = var.bucket_name
   prefix = "models/"
 }
@@ -26,7 +26,7 @@ data "aws_ami" "trading_server" {
 locals {
   # Each key is assumed to follow the structure: "models/{model_type}/{symbol}/{model_number}"
   model_info = {
-    for key in data.aws_s3_bucket_objects.models.keys : key => {
+    for key in data.aws_s3_objects.models.keys : key => {
       model_type   = split(key, "/")[1]   # e.g., "long" or "short"
       symbol       = split(key, "/")[2]   # e.g., the symbol name
       model_number = split(key, "/")[3]   # e.g., "model1", "model2", etc.
@@ -65,7 +65,7 @@ resource "aws_instance" "model_instance" {
 
   # Tag the instance with the extracted values.
   tags = {
-    Name      = "${each.value.symbol}-${each.value.model_number}"
+    Name      = "trading-server-${each.value.symbol}-${each.value.model_type}-${each.value.model_number}"
     ModelType = each.value.model_type
     Symbol    = each.value.symbol
   }
