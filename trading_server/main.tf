@@ -29,14 +29,31 @@ data "aws_ami" "trading_server" {
 
 # Process each S3 object key to extract model attributes.
 locals {
-  # Each key is assumed to follow the structure: "models/{model_type}/{symbol}/{model_number}"
-  model_info = {
-    for key in data.aws_s3_objects.models.keys : key => {
-      model_type   = split(key, "/")[1]   # e.g., "long" or "short"
-      symbol       = split(key, "/")[2]   # e.g., the symbol name
-      model_number = split(key, "/")[3]   # e.g., "model1", "model2", etc.
+  # Filter out directory keys and include only those with at least 5 parts when split by "/"
+  filtered_keys = [
+    for key in data.aws_s3_objects.models.keys :
+    key if !endswith(key, "/") && length(split(key, "/")) >= 5
+  ]
+  
+  # Transform filtered keys into a map with the desired attributes.
+  # For a valid file key like:
+  # "models/long/SOXL/model1/0_my_model_info.pkl"
+  # split(key, "/") yields:
+  # ["models", "long", "SOXL", "model1", "0_my_model_info.pkl"]
+  # so parts[1] is model_type, parts[2] is symbol, and parts[3] is model_number.
+  model_info_attrs = {
+    for key in local.filtered_keys :
+    key => {
+      model_type   = split(key, "/")[1]
+      symbol       = split(key, "/")[2]
+      model_number = split(key, "/")[3]
     }
   }
+}
+
+output "model_info_attrs" {
+  description = "Map of model information extracted from file keys."
+  value       = local.model_info_attrs
 }
 
 # Provision an EC2 instance for each model.
