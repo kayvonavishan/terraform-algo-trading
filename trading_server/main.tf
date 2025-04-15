@@ -40,6 +40,14 @@ output "test_parts_length" {
   value = length(local.test_parts)
 }
 
+# Process each S3 object key to extract model attributes.
+locals {
+  split_keys = [
+    for key in data.aws_s3_objects.models.keys :
+    split(key, "/")
+  ]
+}
+
 
 
 # Process each S3 object key to extract model attributes.
