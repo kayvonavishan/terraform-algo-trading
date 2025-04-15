@@ -31,8 +31,8 @@ data "aws_ami" "trading_server" {
 locals {
   filtered_keys = [
     for key in data.aws_s3_objects.models.keys :
-    key if endswith(key, "/")# &&
-           #length(split(key, "/")) >= 5 #&&
+    key if endswith(key, "/") &&
+           length(split(key, "/")) >= 1 #&&
            #startswith(split(key, "/")[3], "model")
   ]
   
