@@ -32,7 +32,7 @@ locals {
   # Filter out directory keys and include only those with at least 5 parts when split by "/"
   filtered_keys = [
     for key in data.aws_s3_objects.models.keys :
-    key if endswith(key, "/") && length(split(key, "/")) == 4
+    key if endswith(key, "/") && length(split(key, "/")) == 5
   ]
   
   # Transform filtered keys into a map with the desired attributes.
