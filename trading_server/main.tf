@@ -27,7 +27,7 @@ data "aws_ami" "trading_server" {
   owners = ["self"]
 }
 
-ocals {
+locals {
   # First, let’s extract non-empty segments for each key using regexall.
   split_keys = [
     for key in data.aws_s3_objects.models.keys :
