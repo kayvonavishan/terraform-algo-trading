@@ -48,6 +48,10 @@ locals {
   ]
 }
 
+output "split_keys" {
+  value = length(local.split_keys)
+}
+
 
 
 # Process each S3 object key to extract model attributes.
