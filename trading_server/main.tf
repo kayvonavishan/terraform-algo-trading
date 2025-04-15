@@ -104,5 +104,6 @@ resource "aws_instance" "model_instance" {
     Name      = "trading-server-${each.value.symbol}-${each.value.model_type}-${each.value.model_number}"
     ModelType = each.value.model_type
     Symbol    = each.value.symbol
+    ModelNumber = each.value.model_number
   }
 }
