@@ -43,16 +43,20 @@ locals {
   ]
 
   # Transform the filtered segments into a map with the desired attributes.
-  model_info_attrs = {
-    for parts in local.filtered_keys :
-    join("/", parts) => {
-      model_type   = parts[1]   // e.g., "long" or "short"
-      symbol       = parts[2]   // e.g., "SOXL"
-      model_number = parts[3]   // e.g., "model1"
-    }
+  #model_info_attrs = {
+  #  for parts in local.filtered_keys :
+  #  join("/", parts) => {
+  #    model_type   = parts[1]   // e.g., "long" or "short"
+  #    symbol       = parts[2]   // e.g., "SOXL"
+  #    model_number = parts[3]   // e.g., "model1"
+  #  }
   }
 }
 
+output "split_keys" {
+  description = "Map of model information extracted from file prefixes."
+  value       = local.split_keys
+}
 
 
 output "filtered_keys" {
@@ -60,10 +64,10 @@ output "filtered_keys" {
   value       = local.filtered_keys
 }
 
-output "model_info_attrs" {
-  description = "Map of model information extracted from file prefixes."
-  value       = local.model_info_attrs
-}
+#output "model_info_attrs" {
+#  description = "Map of model information extracted from file prefixes."
+#  value       = local.model_info_attrs
+#}
 
 
 ## Provision an EC2 instance for each model.
