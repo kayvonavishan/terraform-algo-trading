@@ -71,38 +71,38 @@ output "model_info_attrs" {
 
 
 ## Provision an EC2 instance for each model.
-#resource "aws_instance" "model_instance" {
-#  # Create an instance for each S3 key modeled in local.model_info.
-#  for_each = local.model_info_attrs
-#
-#  ami           = data.aws_ami.trading_server.id
-#  instance_type = var.instance_type
-#  key_name      = var.key_name
-#
-#  # Reference the security group ID (ensure this security group is correct for your VPC)
-#  vpc_security_group_ids = [
-#    "sg-06612080dc355b148",
-#  ]
-#
-#  # User data script that outputs configuration details to a file in /home/ec2-user/deployment_config.txt
-#  user_data = <<-EOF
-#    #!/bin/bash
-#    CONFIG_FILE="/home/ec2-user/deployment_config.txt"
-#
-#    # Write or overwrite the configuration file with the deployment information.
-#    echo "Bucket Name: ${var.bucket_name}" > $${CONFIG_FILE}
-#    echo "Model Type: ${each.value.model_type}" >> $${CONFIG_FILE}
-#    echo "Symbol: ${each.value.symbol}" >> $${CONFIG_FILE}
-#    echo "Model Number: ${each.value.model_number}" >> $${CONFIG_FILE}
-#
-#    # Optional: Print to the console for debugging/logging purposes.
-#    echo "Deployment config written to $${CONFIG_FILE}"
-#  EOF
-#
-#  # Tag the instance with the extracted values.
-#  tags = {
-#    Name      = "trading-server-${each.value.symbol}-${each.value.model_type}-${each.value.model_number}"
-#    ModelType = each.value.model_type
-#    Symbol    = each.value.symbol
-#  }
-#}
+resource "aws_instance" "model_instance" {
+  # Create an instance for each S3 key modeled in local.model_info.
+  for_each = local.model_info_attrs
+
+  ami           = data.aws_ami.trading_server.id
+  instance_type = var.instance_type
+  key_name      = var.key_name
+
+  # Reference the security group ID (ensure this security group is correct for your VPC)
+  vpc_security_group_ids = [
+    "sg-06612080dc355b148",
+  ]
+
+  # User data script that outputs configuration details to a file in /home/ec2-user/deployment_config.txt
+  user_data = <<-EOF
+    #!/bin/bash
+    CONFIG_FILE="/home/ec2-user/deployment_config.txt"
+
+    # Write or overwrite the configuration file with the deployment information.
+    echo "Bucket Name: ${var.bucket_name}" > $${CONFIG_FILE}
+    echo "Model Type: ${each.value.model_type}" >> $${CONFIG_FILE}
+    echo "Symbol: ${each.value.symbol}" >> $${CONFIG_FILE}
+    echo "Model Number: ${each.value.model_number}" >> $${CONFIG_FILE}
+
+    # Optional: Print to the console for debugging/logging purposes.
+    echo "Deployment config written to $${CONFIG_FILE}"
+  EOF
+
+  # Tag the instance with the extracted values.
+  tags = {
+    Name      = "trading-server-${each.value.symbol}-${each.value.model_type}-${each.value.model_number}"
+    ModelType = each.value.model_type
+    Symbol    = each.value.symbol
+  }
+}
