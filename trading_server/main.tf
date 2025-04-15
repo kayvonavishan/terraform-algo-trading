@@ -39,7 +39,7 @@ locals {
   # ["models", "long", "SOXL", "model1"]
   filtered_keys = [
     for key in local.split_keys :
-    key if length(key) == 4 && startswith(key[3], "model")
+    key if length(key) == 4 #&& startswith(key[3], "model")
   ]
 
   # Transform the filtered segments into a map with the desired attributes.
