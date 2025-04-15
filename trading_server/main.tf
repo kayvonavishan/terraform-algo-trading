@@ -50,7 +50,7 @@ locals {
   #    symbol       = parts[2]   // e.g., "SOXL"
   #    model_number = parts[3]   // e.g., "model1"
   #  }
-  }
+  #}
 }
 
 output "split_keys" {
