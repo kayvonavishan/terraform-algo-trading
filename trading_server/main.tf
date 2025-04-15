@@ -59,7 +59,7 @@ output "model_info_attrs" {
 # Provision an EC2 instance for each model.
 resource "aws_instance" "model_instance" {
   # Create an instance for each S3 key modeled in local.model_info.
-  for_each = local.model_info
+  for_each = local.model_info_attrs
 
   ami           = data.aws_ami.trading_server.id
   instance_type = var.instance_type
