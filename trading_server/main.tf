@@ -27,74 +27,43 @@ data "aws_ami" "trading_server" {
   owners = ["self"]
 }
 
-locals {
-  test_key   = "models/long/SOXL/model1/"
-  test_parts = split("/", local.test_key)
-}
-
-output "test_parts" {
-  value = local.test_parts
-}
-
-output "test_parts_length" {
-  value = length(local.test_parts)
-}
-
-# Process each S3 object key to extract model attributes.
-locals {
+ocals {
   # First, let’s extract non-empty segments for each key using regexall.
   split_keys = [
     for key in data.aws_s3_objects.models.keys :
     regexall("[^/]+", key)
   ]
-}
 
-output "split_keys" {
-  value = local.split_keys
-}
-
-# Process each S3 object key to extract model attributes.
-locals {
-  raw_keys = [
-    for key in data.aws_s3_objects.models.keys :
-    key
-  ]
-}
-
-output "raw_keys" {
-  value = local.raw_keys
-}
-
-
-
-# Process each S3 object key to extract model attributes.
-locals {
+  # Now, filter for keys that represent a model prefix.
+  # For a prefix like "models/long/SOXL/model1/", the regexall output will be:
+  # ["models", "long", "SOXL", "model1"]
   filtered_keys = [
-    for key in data.aws_s3_objects.models.keys :
-    key if endswith(key, "/") &&
-           length(split(key, "/")) >= 2 #&&
-           #startswith(split(key, "/")[3], "model")
+    for key in local.split_keys :
+    key if length(key) == 4 && startswith(key[3], "model")
   ]
-  
-  #model_info_attrs = {
-  #  for key in local.filtered_keys :
-  #  key => {
-  #    model_type   = split(key, "/")[1]   # e.g. "long" or "short"
-  #    symbol       = split(key, "/")[2]   # e.g. "SOXL"
-  #    model_number = split(key, "/")[3]   # e.g. "model1"
-  #  }
-  #}
+
+  # Transform the filtered segments into a map with the desired attributes.
+  model_info_attrs = {
+    for parts in local.filtered_keys :
+    join("/", parts) => {
+      model_type   = parts[1]   // e.g., "long" or "short"
+      symbol       = parts[2]   // e.g., "SOXL"
+      model_number = parts[3]   // e.g., "model1"
+    }
+  }
 }
+
+
 
 output "filtered_keys" {
   description = "Map of model information extracted from file prefixes."
   value       = local.filtered_keys
 }
 
-#output "model_info_attrs" {
-#  description = "Map of model information extracted from file prefixes."
-#  value       = local.model_info_attrs
-#}
+output "model_info_attrs" {
+  description = "Map of model information extracted from file prefixes."
+  value       = local.model_info_attrs
+}
 
 
 ## Provision an EC2 instance for each model.
