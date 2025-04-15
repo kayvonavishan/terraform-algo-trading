@@ -52,6 +52,18 @@ output "split_keys" {
   value = local.split_keys
 }
 
+# Process each S3 object key to extract model attributes.
+locals {
+  raw_keys = [
+    for key in data.aws_s3_objects.models.keys :
+    key
+  ]
+}
+
+output "raw_keys" {
+  value = local.raw_keys
+}
+
 
 
 # Process each S3 object key to extract model attributes.
