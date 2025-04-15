@@ -27,6 +27,15 @@ data "aws_ami" "trading_server" {
   owners = ["self"]
 }
 
+locals {
+  test_key   = "models/long/SOXL/model1/"
+  test_parts = split("/", local.test_key)
+}
+
+output "test_parts" {
+  value = local.test_parts
+}
+
 # Process each S3 object key to extract model attributes.
 locals {
   filtered_keys = [
