@@ -114,5 +114,5 @@ resource "aws_lambda_function" "trading_server_lambda" {
 ###############################
 
 output "lambda_function_name" {
-  value = aws_lambda_function.git_clone_lambda.function_name
+  value = aws_lambda_function.trading_server_lambda.function_name
 }
