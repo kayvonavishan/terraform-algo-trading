@@ -1,8 +1,3 @@
-# Specify the AWS provider and region
-#provider "aws" {
-#  region = var.aws_region
-#}
-
 ###############################
 # IAM Role and Policy for Lambda
 ###############################
@@ -79,9 +74,6 @@ resource "aws_iam_policy" "lambda_policy" {
 }
 EOF
 }
-
-
-
 
 # Attach the policy to the IAM role
 resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
