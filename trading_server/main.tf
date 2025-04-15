@@ -33,7 +33,7 @@ locals {
     for key in data.aws_s3_objects.models.keys :
     key if endswith(key, "/") &&
            length(split(key, "/")) >= 5 &&
-           startswith(split(key, "/")[3], "model")
+           #startswith(split(key, "/")[3], "model")
   ]
   
   #model_info_attrs = {
