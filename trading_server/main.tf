@@ -42,9 +42,10 @@ output "test_parts_length" {
 
 # Process each S3 object key to extract model attributes.
 locals {
+  # First, let’s extract non-empty segments for each key using regexall.
   split_keys = [
     for key in data.aws_s3_objects.models.keys :
-    split(key, "/")
+    regexall("[^/]+", key)
   ]
 }
 
