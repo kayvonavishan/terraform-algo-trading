@@ -169,10 +169,10 @@ resource "aws_instance" "model_instance" {
     CONFIG_FILE="/home/ec2-user/deployment_config.txt"
 
     # Write or overwrite the configuration file with the deployment information.
-    echo "Bucket Name: ${var.bucket_name}" > $${CONFIG_FILE}
-    echo "Model Type: ${each.value.model_type}" >> $${CONFIG_FILE}
-    echo "Symbol: ${each.value.symbol}" >> $${CONFIG_FILE}
-    echo "Model Number: ${each.value.model_number}" >> $${CONFIG_FILE}
+    echo "bucket_name=${var.bucket_name}" > $${CONFIG_FILE}
+    echo "model_type=${each.value.model_type}" >> $${CONFIG_FILE}
+    echo "symbol=${each.value.symbol}" >> $${CONFIG_FILE}
+    echo "model_number=${each.value.model_number}" >> $${CONFIG_FILE}
 
     # Optional: Print to the console for debugging/logging purposes.
     echo "Deployment config written to $${CONFIG_FILE}"
