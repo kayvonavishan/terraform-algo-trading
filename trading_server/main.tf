@@ -76,6 +76,37 @@ output "model_info_attrs" {
 ###############################
 # IAM Role and Policies for EC2
 ###############################
+# S3 Bucket Policy: allow our EC2 role to ListBucket & GetObject
+resource "aws_s3_bucket_policy" "allow_instance_s3_access" {
+  bucket = var.bucket_name
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowListBucket",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/trading_server_instance_role"
+      },
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::${var.bucket_name}"
+    },
+    {
+      "Sid": "AllowGetObject",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/trading_server_instance_role"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::${var.bucket_name}/*"
+    }
+  ]
+}
+EOF
+}
+
 
 # Create an IAM role for the EC2 instance. This allows the instance to interact with AWS services.
 resource "aws_iam_role" "instance_role" {
