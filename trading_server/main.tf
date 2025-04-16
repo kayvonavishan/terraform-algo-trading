@@ -115,6 +115,25 @@ resource "aws_iam_role_policy" "secrets_policy" {
 EOF
 }
 
+# Inline IAM policy for S3 ListBucket access
+resource "aws_iam_role_policy" "s3_list_policy" {
+  name = "s3-list-access"
+  role = aws_iam_role.instance_role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "s3:ListBucket",
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::algo-model-deploy"
+    }
+  ]
+}
+EOF
+}
+
 # ***** 1B: SSM Support *****
 # Attach the AmazonSSMManagedInstanceCore managed policy so that the EC2 instance can use AWS Systems Manager (SSM).
 resource "aws_iam_role_policy_attachment" "ssm_access" {

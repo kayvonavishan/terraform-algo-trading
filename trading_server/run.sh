@@ -18,20 +18,31 @@ git config set --global remote.origin.url "https://kayvonavishan:${MYSSHKEY}@git
 
 # Change to the home directory.
 cd /home/ec2-user
+export HOME=/home/ec2-user
+
 
 # Check if the repository already exists; if not, clone it; if it does, pull updates.
 if [ ! -d "algo-modeling-v2" ]; then
   echo "Repository not found. Cloning the repository..."
-  git clone https://kayvonavishan:$MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git
-  git checkout feature/deployment
+  sudo -u ec2-user git clone https://kayvonavishan:$MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git
+  sudo chown -R ec2-user:ec2-user /home/ec2-user/algo-modeling-v2
   cd algo-modeling-v2
+  sudo -u ec2-user git fetch >> /home/ec2-user/live_trader.log
+  sudo -u ec2-user git checkout feature/deployment >> /home/ec2-user/live_trader.log
+  sudo -u ec2-user git pull >> /home/ec2-user/live_trader.log
 else
   echo "Repository exists. Pulling latest changes..."
+  git config --global --add safe.directory /home/ec2-user/algo-modeling-v2
+  rm -R algo-modeling-v2
+  sudo -u ec2-user git clone https://kayvonavishan:$MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git
+  sudo chown -R ec2-user:ec2-user /home/ec2-user/algo-modeling-v2
   cd algo-modeling-v2
-  git checkout feature/deployment
-  git pull
+  sudo -u ec2-user git fetch >> /home/ec2-user/live_trader.log
+  sudo -u ec2-user git checkout feature/deployment >> /home/ec2-user/live_trader.log
+  sudo -u ec2-user git pull >> /home/ec2-user/live_trader.log
 fi
 
 # Run the Python ingestion script.
 echo "Running live_trader.py..."
-sudo -u ec2-user /usr/bin/python3 backup_vscode/deployment/live_trader.py > /home/ec2-user/live_trader.log 2>&1 &
+cd backup_vscode
+sudo -u ec2-user /usr/bin/python3 deployment/live_trader.py >> /home/ec2-user/live_trader.log 2>&1 &
