@@ -70,6 +70,63 @@ output "model_info_attrs" {
 }
 
 
+###############################
+# IAM Role and Policies for EC2
+###############################
+
+# Create an IAM role for the EC2 instance. This allows the instance to interact with AWS services.
+resource "aws_iam_role" "instance_role" {
+  name = "trading_server_instance_role"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+# Attach an inline policy to the IAM role allowing access to Secrets Manager.
+resource "aws_iam_role_policy" "secrets_policy" {
+  name = "secretsmanager-access"
+  role = aws_iam_role.instance_role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "secretsmanager:GetSecretValue",
+      "Effect": "Allow",
+      "Resource": "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:github/ssh-key*"
+    }
+  ]
+}
+EOF
+}
+
+# ***** 1B: SSM Support *****
+# Attach the AmazonSSMManagedInstanceCore managed policy so that the EC2 instance can use AWS Systems Manager (SSM).
+resource "aws_iam_role_policy_attachment" "ssm_access" {
+  role       = aws_iam_role.instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+# Create an IAM instance profile to attach the role to the EC2 instance.
+resource "aws_iam_instance_profile" "instance_profile" {
+  name = "trading_server_instance_profile"
+  role = aws_iam_role.instance_role.name
+}
+
+
+
 ## Provision an EC2 instance for each model.
 resource "aws_instance" "model_instance" {
   # Create an instance for each S3 key modeled in local.model_info.
@@ -98,6 +155,9 @@ resource "aws_instance" "model_instance" {
     # Optional: Print to the console for debugging/logging purposes.
     echo "Deployment config written to $${CONFIG_FILE}"
   EOF
+
+  # Attach the IAM instance profile so that the instance can access Secrets Manager and SSM.
+  iam_instance_profile = aws_iam_instance_profile.instance_profile.name
 
   # Tag the instance with the extracted values.
   tags = {
