@@ -27,6 +27,9 @@ data "aws_ami" "trading_server" {
   owners = ["self"]
 }
 
+# Data source to get the current AWS account id (used in IAM policy resources)
+data "aws_caller_identity" "current" {}
+
 locals {
   # First, let’s extract non-empty segments for each key using regexall.
   split_keys = [
