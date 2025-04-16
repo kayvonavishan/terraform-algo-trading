@@ -1,4 +1,4 @@
-variable "region" {
+variable "aws_region" {
   description = "The AWS region for deployment."
   default     = "us-east-1"
 }
@@ -17,3 +17,5 @@ variable "key_name" {
   description = "The key pair name to use for the EC2 instances."
   default     = "algo-deployment"
 }
+
+

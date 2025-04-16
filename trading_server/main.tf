@@ -1,6 +1,6 @@
 # Configure the AWS provider
 provider "aws" {
-  region = var.region
+  region = var.aws_region
 }
 
 # Data source to list all objects under the "models/" prefix in the bucket.
