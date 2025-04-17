@@ -42,6 +42,15 @@ else
   sudo -u ec2-user git pull >> /home/ec2-user/live_trader.log
 fi
 
+#grab the passed‑in NATS IP (this is passed in lambda_function.py)
+CONFIG="/home/ec2-user/deployment_config.txt"
+#update or append the line
+if grep -q '^nats_public_ip=' "$CONFIG"; then
+  sed -i "s|^nats_public_ip=.*|nats_public_ip=$NATS_PUBLIC_IP|" "$CONFIG"
+else
+  echo "nats_public_ip=$NATS_PUBLIC_IP" >> "$CONFIG"
+fi
+
 # Run the Python ingestion script.
 echo "Running live_trader.py..."
 cd backup_vscode

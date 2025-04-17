@@ -3,65 +3,68 @@ import time
 import boto3
 
 def lambda_handler(event, context):
+    region = os.environ.get("AWS_REGION", "us-east-1")
+    ssm = boto3.client("ssm", region_name=region)
+    ec2 = boto3.client("ec2", region_name=region)
+
+    # 1. Find the single alpaca-websocket-ingest instance
+    ingest_filters = [
+        {'Name': 'tag:Name', 'Values': ['alpaca-websocket-ingest']},
+        {'Name': 'instance-state-name', 'Values': ['running']}
+    ]
+    ingest_resp = ec2.describe_instances(Filters=ingest_filters)
     try:
-        region_name = os.environ.get("AWS_REGION", "us-east-1")
-        # Initialize boto3 clients for SSM and EC2.
-        ssm_client = boto3.client("ssm", region_name=region_name)
-        ec2_client = boto3.client("ec2", region_name=region_name)
+        ingest_inst = ingest_resp['Reservations'][0]['Instances'][0]
+        nats_ip = ingest_inst['PublicIpAddress']
+    except (IndexError, KeyError):
+        raise Exception("Could not find running alpaca-websocket-ingest instance")
 
-        # Find all running EC2 instances where the tag 'Name' starts with 'trading-server'.
-        filters = [
-            {'Name': 'tag:Name', 'Values': ['trading-server*']},
-            {'Name': 'instance-state-name', 'Values': ['running']}
-        ]
-        ec2_response = ec2_client.describe_instances(Filters=filters)
-        instance_ids = []
-        for reservation in ec2_response.get("Reservations", []):
-            for instance in reservation.get("Instances", []):
-                instance_id = instance.get("InstanceId")
-                if instance_id:
-                    instance_ids.append(instance_id)
-        
-        if not instance_ids:
-            raise Exception("Could not find any running instances with tag Name starting with 'trading-server'")
-        
-        # Read the shell script from the deployment package.
-        script_path = os.path.join(os.getcwd(), "trading_server", "run.sh")
-        with open(script_path, "r") as script_file:
-            commands = script_file.read()
+    # 2. Find all trading-server* instances
+    trade_filters = [
+        {'Name': 'tag:Name', 'Values': ['trading-server*']},
+        {'Name': 'instance-state-name', 'Values': ['running']}
+    ]
+    trade_resp = ec2.describe_instances(Filters=trade_filters)
+    instance_ids = [
+        inst['InstanceId']
+        for res in trade_resp.get('Reservations', []) 
+        for inst in res.get('Instances', [])
+    ]
+    if not instance_ids:
+        raise Exception("No running trading-server instances found")
 
-        # Use SSM to run the shell script on the target EC2 instances.
-        response = ssm_client.send_command(
-            InstanceIds=instance_ids,
-            DocumentName="AWS-RunShellScript",
-            Parameters={'commands': [commands]},
-            TimeoutSeconds=60,
-        )
-        command_id = response['Command']['CommandId']
-        
-        # Wait briefly for the command to finish.
-        time.sleep(2)
-        
-        # Retrieve the invocation results for each instance.
-        results = {}
-        for instance_id in instance_ids:
-            invocation = ssm_client.get_command_invocation(
-                CommandId=command_id,
-                InstanceId=instance_id,
-            )
-            results[instance_id] = {
-                "Status": invocation.get("Status"),
-                "StandardOutputContent": invocation.get("StandardOutputContent", ""),
-                "StandardErrorContent": invocation.get("StandardErrorContent", "")
-            }
-        
-        return {
-            "statusCode": 200,
-            "body": results
+    # 3. Read your local run.sh
+    script_path = os.path.join(os.getcwd(), "trading_server", "run.sh")
+    with open(script_path) as f:
+        lines = f.read().splitlines()
+
+    # 4. Prepend export (so your run.sh can reference $NATS_PUBLIC_IP)
+    commands = [
+        f"export NATS_PUBLIC_IP={nats_ip}",
+        # (option A) source the script in‐line
+        *lines,
+        # (option B) or simply invoke the script file if it already exists on the instance:
+        # f"bash /home/ec2-user/run.sh"
+    ]
+
+    # 5. Send to all trading-server instances
+    resp = ssm.send_command(
+        InstanceIds=instance_ids,
+        DocumentName="AWS-RunShellScript",
+        Parameters={'commands': commands},
+        TimeoutSeconds=60,
+    )
+    cmd_id = resp['Command']['CommandId']
+
+    # 6. (Optional) wait and collect results…
+    time.sleep(2)
+    results = {}
+    for iid in instance_ids:
+        inv = ssm.get_command_invocation(CommandId=cmd_id, InstanceId=iid)
+        results[iid] = {
+            "Status": inv['Status'],
+            "Stdout": inv.get('StandardOutputContent', ''),
+            "Stderr": inv.get('StandardErrorContent', ''),
         }
-        
-    except Exception as e:
-       return {
-           "statusCode": 500,
-           "body": f"Error executing Lambda: {str(e)}"
-       }
+
+    return {"statusCode": 200, "body": results}
