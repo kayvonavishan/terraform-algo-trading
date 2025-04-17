@@ -5,10 +5,6 @@ cd /tmp
 # (Optional) Print a message to indicate local execution by SSM
 echo "Executing commands on the EC2 instance locally via SSM..."
 
-# Ensure the .ssh directory exists with the proper permissions.
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-
 # Retrieve the GitHub SSH key from Secrets Manager using the AWS CLI.
 echo "Fetching GitHub SSH key from Secrets Manager..."
 aws secretsmanager get-secret-value \

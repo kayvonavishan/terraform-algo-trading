@@ -93,6 +93,18 @@ resource "aws_instance" "alpaca_instance" {
   vpc_security_group_ids = [
     "sg-06612080dc355b148",
   ]
+
+  # User data script that outputs configuration details to a file in /home/ec2-user/deployment_config.txt
+  user_data = <<-EOF
+    #!/bin/bash
+    CONFIG_FILE="/home/ec2-user/deployment_config.txt"
+
+    # Write or overwrite the configuration file with the deployment information.
+    echo "bucket_name=${var.bucket_name}" > $${CONFIG_FILE}
+
+    # Optional: Print to the console for debugging/logging purposes.
+    echo "Deployment config written to $${CONFIG_FILE}"
+  EOF
   
   # Attach the IAM instance profile so that the instance can access Secrets Manager and SSM.
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
