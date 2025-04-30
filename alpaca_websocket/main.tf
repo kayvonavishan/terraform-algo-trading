@@ -70,14 +70,27 @@ resource "aws_iam_role_policy" "s3_config_read" {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Action": ["s3:GetObject"],
+      "Sid": "AllowGetConfigObject",
       "Effect": "Allow",
-      "Resource": "arn:aws:s3:::algo-model-deploy/configs/sandbox_symbols.txt"
+      "Action": ["s3:GetObject"],
+      "Resource": "arn:aws:s3:::${var.bucket_name}/configs/sandbox_sumbols.txt"
+    },
+    {
+      "Sid": "AllowListConfigPrefix",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::${var.bucket_name}",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["configs/sandbox_sumbols.txt"]
+        }
+      }
     }
   ]
 }
 EOF
 }
+
 
 # ***** 1B: SSM Support *****
 # Attach the AmazonSSMManagedInstanceCore managed policy so that the EC2 instance can use AWS Systems Manager (SSM).
