@@ -61,6 +61,24 @@ resource "aws_iam_role_policy" "secrets_policy" {
 EOF
 }
 
+resource "aws_iam_role_policy" "s3_config_read" {
+  name = "s3-config-read"
+  role = aws_iam_role.instance_role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": ["s3:GetObject"],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::algo-model-deploy/configs/sandbox_symbols.txt"
+    }
+  ]
+}
+EOF
+}
+
 # ***** 1B: SSM Support *****
 # Attach the AmazonSSMManagedInstanceCore managed policy so that the EC2 instance can use AWS Systems Manager (SSM).
 resource "aws_iam_role_policy_attachment" "ssm_access" {

@@ -1,17 +1,42 @@
+import os
 import asyncio
 import json
 import websockets
+import boto3
 from nats.aio.client import Client as NATS
 import datetime
 from alpaca.data.live import StockDataStream
 import json
+
+def load_local_config(path: str) -> dict:
+    """Read simple key=value lines into a dict."""
+    cfg = {}
+    with open(path, "r") as f:
+        for line in f:
+            if "=" in line:
+                k, v = line.strip().split("=", 1)
+                cfg[k.strip()] = v.strip()
+    return cfg
+
+def load_symbols_from_s3(bucket: str, key: str):
+    s3 = boto3.client("s3")
+    obj = s3.get_object(Bucket=bucket, Key=key)
+    content = obj["Body"].read().decode("utf-8")
+    return [s.strip() for s in content.split(",") if s.strip()]
+
+
+# -----------------------------------------------------------------------------
+# Main script variables
+# -----------------------------------------------------------------------------
+# Path to the config file written by your EC2 user-data
+CONFIG_PATH = "/home/ec2-user/deployment_config.txt"
+S3_KEY      = "configs/sandbox_sumbols.txt"   # your symbols file
 
 # Replace these with your Alpaca API credentials and endpoint details.
 ALPACA_API_KEY = 'AKH7HWB529BTQJDMDLZV'
 ALPACA_SECRET_KEY = 'RDZItO83Vw7eFv7ccpnXju64ZHT4riMc2wsKgjw1'
 ALPACA_WS_URL = 'wss://stream.data.alpaca.markets/v2/test'
 
-from nats.aio.client import Client as NATS
 nc = None  # Global variable to hold the NATS connection
 async def connect_nats():
     global nc
@@ -46,16 +71,16 @@ async def bars_data_handler(data):
     # Publish the message to NATS under the subject "bars.data"
     await nc.publish("bars.data", message.encode())
 
-#wss_client.subscribe_bars(bars_data_handler, "FAKEPACA")
-
-#wss_client.run()
-
 async def main():
+    # read from S3 using the bucket pulled from the local config
+    symbols = load_symbols_from_s3(AWS_S3_BUCKET, S3_KEY)
+    print(f"Subscribing to symbols: {symbols}")
+
     # Connect to the local NATS server.
     await connect_nats()
     
     # Subscribe to bars and set the callback handler.
-    wss_client.subscribe_bars(bars_data_handler, "FAKEPACA")
+    wss_client.subscribe_bars(bars_data_handler, symbols)
     
     # Run the Alpaca websocket client.
     await wss_client._run_forever()
