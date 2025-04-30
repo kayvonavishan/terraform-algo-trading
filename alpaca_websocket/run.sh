@@ -23,12 +23,12 @@ cd /home/ec2-user
 # Check if the repository already exists; if not, clone it; if it does, pull updates.
 if [ ! -d "algo-modeling-v2" ]; then
   echo "Repository not found. Cloning the repository..."
-  git clone https://kayvonavishan:$MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git
+  sudo -u ec2-user git clone https://kayvonavishan:$MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git
   cd algo-modeling-v2
 else
   echo "Repository exists. Pulling latest changes..."
   cd algo-modeling-v2
-  git pull
+  sudo -u ec2-user git pull
 fi
 
 # Start the NATS server in the background.
