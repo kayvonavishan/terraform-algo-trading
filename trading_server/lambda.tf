@@ -89,20 +89,20 @@ locals {
   # 1) grab every file under the module
   all_files = fileset("${path.module}", "**")
 
-  # 2) grab only the files you _do_ want
-  wanted_files = concat(
-    fileset("${path.module}", "trading_server/**/*.py"),
-    ["requirements.txt"]
-  )
-
-  # 3) everything not in wanted_files should be excluded
-  excludes = [
-    for f in local.all_files : f
-    if !(f in local.wanted_files)
-  ]
+  ## 2) grab only the files you _do_ want
+  #wanted_files = concat(
+  #  fileset("${path.module}", "trading_server/**/*.py"),
+  #  ["requirements.txt"]
+  #)
+  #
+  ## 3) everything not in wanted_files should be excluded
+  #excludes = [
+  #  for f in local.all_files : f
+  #  if !(f in local.wanted_files)
+  #]
 }
 
-output "lambda_function_name" {
+output "all_files" {
   value = local.all_files
 }
 
