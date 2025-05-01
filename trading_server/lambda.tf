@@ -89,6 +89,11 @@ data "archive_file" "lambda_package" {
   type        = "zip"
   source_dir  = "."     # ✔ zips the TF folder + all your code files
   output_path = "./deployment-package.zip"
+
+  includes = [
+    "trading_server/lambda_function.py",   # all your code files
+    "trading_server/run.sh",         # your dependencies manifest
+  ]
 }
 
 ###############################
