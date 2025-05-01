@@ -113,10 +113,12 @@ data "archive_file" "lambda_package" {
   source_dir  = "."     # ✔ zips the TF folder + all your code files
   output_path = "./deployment-package.zip"
 
-  #includes = [
-  #  "trading_server/lambda_function.py",   # all your code files
-  #  "trading_server/run.sh",         # your dependencies manifest
-  #]
+  # toss out anything that isn't runtime code
+  excludes = [
+    "*.tf",            # your Terraform files
+    ".terraform/*",    # Terraform’s state/cache dir
+  ]
+}
 }
 
 ###############################
