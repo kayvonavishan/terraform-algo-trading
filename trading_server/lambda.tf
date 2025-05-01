@@ -87,8 +87,8 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 
 data "archive_file" "lambda_package" {
   type        = "zip"
-  source_dir  = "${path.module}"     # ✔ zips the TF folder + all your code files
-  output_path = "${path.module}/deployment-package.zip"
+  source_dir  = "."     # ✔ zips the TF folder + all your code files
+  output_path = "./deployment-package.zip"
 }
 
 ###############################
