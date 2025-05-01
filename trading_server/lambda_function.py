@@ -34,7 +34,7 @@ def lambda_handler(event, context):
         raise Exception("No running trading-server instances found")
 
     # 3. Read your local run.sh
-    script_path = os.path.join(os.getcwd(), "trading_server", "run.sh")
+    script_path = os.path.join(os.getcwd(), "run.sh")
     with open(script_path) as f:
         lines = f.read().splitlines()
 
@@ -66,6 +66,6 @@ def lambda_handler(event, context):
             "Stdout": inv.get('StandardOutputContent', ''),
             "Stderr": inv.get('StandardErrorContent', ''),
         }
-        
+
     return {"statusCode": 200, "body": results}
 
