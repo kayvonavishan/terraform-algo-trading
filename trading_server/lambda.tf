@@ -119,7 +119,6 @@ data "archive_file" "lambda_package" {
     ".terraform/*",    # Terraform’s state/cache dir
   ]
 }
-}
 
 ###############################
 # Lambda Function
