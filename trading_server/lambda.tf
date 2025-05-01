@@ -81,6 +81,16 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
+##################################################
+# ZIP up the contents of trading_server/ on every plan
+##################################################
+
+data "archive_file" "lambda_package" {
+  type        = "zip"
+  source_dir  = "${path.module}/trading_server"     # ← your working directory
+  output_path = "${path.module}/deployment-package.zip"
+}
+
 ###############################
 # Lambda Function
 ###############################
@@ -92,8 +102,12 @@ resource "aws_lambda_function" "trading_server_lambda" {
   handler       = "trading_server.lambda_function.lambda_handler"
   runtime       = "python3.8"  # Change to your desired Python runtime version
 
-  filename         = "deployment-package.zip"
-  source_code_hash = filebase64sha256("deployment-package.zip")
+  #filename         = "deployment-package.zip"
+  #source_code_hash = filebase64sha256("deployment-package.zip")
+
+  # point at the auto-built ZIP
+  filename         = data.archive_file.lambda_package.output_path
+  source_code_hash = data.archive_file.lambda_package.output_base64sha256
 
   environment {
     variables = {
