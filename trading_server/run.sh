@@ -51,6 +51,7 @@ else
   echo "nats_public_ip=$NATS_PUBLIC_IP" >> "$CONFIG"
 fi
 
+
 # Run the Python ingestion script.
 echo "Running live_trader.py..."
 cd backup_vscode
