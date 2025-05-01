@@ -28,7 +28,7 @@ def lambda_handler(event, context):
             raise Exception("Could not find a running instance with tag Name=alpaca-websocket-ingest")
         
         # Read the shell script from the deployment package.
-        script_path = os.path.join(os.getcwd(), "alpaca_websocket", "run.sh")
+        script_path = os.path.join(os.getcwd(), "run.sh")
         with open(script_path, "r") as script_file:
             commands = script_file.read()
 
