@@ -38,7 +38,7 @@ else
   sudo chown -R ec2-user:ec2-user /home/ec2-user/algo-modeling-v2
   cd algo-modeling-v2
   sudo -u ec2-user git fetch >> /home/ec2-user/live_trader.log
-  sudo -u ec2-user git checkout feature/deployment >> /home/ec2-user/live_trader.log
+  sudo -u ec2-user git checkout feature/deployment-final >> /home/ec2-user/live_trader.log
   sudo -u ec2-user git pull >> /home/ec2-user/live_trader.log
 fi
 
