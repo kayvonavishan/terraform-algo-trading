@@ -31,30 +31,38 @@ data "aws_ami" "trading_server" {
 data "aws_caller_identity" "current" {}
 
 locals {
-  # First, let’s extract non-empty segments for each key using regexall.
-  split_keys = [
+  # regex matching "models/<type>/<symbol>/<anything>-outer_<digits>_inner_<digits>"
+  inner_pattern = "^models/[^/]+/[^/]+/[^/]+-outer_[0-9]+_inner_[0-9]+"
+
+  # extract the unique 4-segment prefixes that match your outer/inner pattern
+  matching_prefixes = distinct([
     for key in data.aws_s3_objects.models.keys :
-    regexall("[^/]+", key)
+    regexall(local.inner_pattern, key)[0]
+    if length(regexall(local.inner_pattern, key)) > 0
+  ])
+
+  # split each prefix into its four parts
+  split_keys = [
+    for p in local.matching_prefixes :
+    regexall("[^/]+", p)
   ]
 
-  # Now, filter for keys that represent a model prefix.
-  # For a prefix like "models/long/SOXL/model1/", the regexall output will be:
-  # ["models", "long", "SOXL", "model1"]
-  filtered_keys = [
-    for key in local.split_keys :
-    key if length(key) == 4 #&& startswith(key[3], "model")
-  ]
-
-  # Transform the filtered segments into a map with the desired attributes.
+  # map each folder to its attributes
   model_info_attrs = {
-    for parts in local.filtered_keys :
-    join("/", parts) => {
-      model_type   = parts[1]   // e.g., "long" or "short"
-      symbol       = parts[2]   // e.g., "SOXL"
-      model_number = parts[3]   // e.g., "model1"
+    for segs in local.split_keys :
+    join("/", segs) => {
+      model_type   = segs[1]   # e.g. "long"
+      symbol       = segs[2]   # e.g. "SOXL"
+      model_number = segs[3]   # e.g. "soxl_long-outer_11_inner_48"
     }
   }
 }
+
+output "matching_prefixes" {
+  description = "Unique S3 prefixes matching the outer/inner pattern"
+  value       = local.matching_prefixes
+}
+
 
 output "split_keys" {
   description = "Map of model information extracted from file prefixes."
