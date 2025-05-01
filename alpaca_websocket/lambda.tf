@@ -85,6 +85,18 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 # Lambda Function
 ###############################
 
+data "archive_file" "lambda_package" {
+  type        = "zip"
+  source_dir  = "."     # ✔ zips the TF folder + all your code files
+  output_path = "./deployment-package.zip"
+
+  # toss out anything that isn't runtime code
+  excludes = [
+    "*.tf",            # your Terraform files
+    ".terraform/*",    # Terraform’s state/cache dir
+  ]
+}
+
 # Define the Lambda function resource
 resource "aws_lambda_function" "git_clone_lambda" {
   function_name = "GitCloneLambda"
@@ -92,8 +104,12 @@ resource "aws_lambda_function" "git_clone_lambda" {
   handler       = "alpaca_websocket.lambda_function.lambda_handler"
   runtime       = "python3.8"  # Change to your desired Python runtime version
 
-  filename         = "deployment-package.zip"
-  source_code_hash = filebase64sha256("deployment-package.zip")
+  #filename         = "deployment-package.zip"
+  #source_code_hash = filebase64sha256("deployment-package.zip")
+
+  # point at the auto-built ZIP
+  filename         = data.archive_file.lambda_package.output_path
+  source_code_hash = data.archive_file.lambda_package.output_base64sha256
 
   environment {
     variables = {
