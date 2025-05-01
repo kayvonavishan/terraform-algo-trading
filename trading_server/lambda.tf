@@ -85,15 +85,38 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 # ZIP up the contents of trading_server/ on every plan
 ##################################################
 
+locals {
+  # 1) grab every file under the module
+  all_files = fileset("${path.module}", "**")
+
+  # 2) grab only the files you _do_ want
+  wanted_files = concat(
+    fileset("${path.module}", "trading_server/**/*.py"),
+    ["requirements.txt"]
+  )
+
+  # 3) everything not in wanted_files should be excluded
+  excludes = [
+    for f in local.all_files : f
+    if !(f in local.wanted_files)
+  ]
+}
+
+output "lambda_function_name" {
+  value = local.all_files
+}
+
+
+
 data "archive_file" "lambda_package" {
   type        = "zip"
   source_dir  = "."     # ✔ zips the TF folder + all your code files
   output_path = "./deployment-package.zip"
 
-  includes = [
-    "trading_server/lambda_function.py",   # all your code files
-    "trading_server/run.sh",         # your dependencies manifest
-  ]
+  #includes = [
+  #  "trading_server/lambda_function.py",   # all your code files
+  #  "trading_server/run.sh",         # your dependencies manifest
+  #]
 }
 
 ###############################
