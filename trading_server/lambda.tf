@@ -105,6 +105,7 @@ resource "aws_lambda_function" "trading_server_lambda" {
 
   # Adjust the timeout as needed (in seconds)
   timeout = 30
+  publish = true
 
 }
 

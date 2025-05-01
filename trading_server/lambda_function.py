@@ -66,6 +66,5 @@ def lambda_handler(event, context):
             "Stdout": inv.get('StandardOutputContent', ''),
             "Stderr": inv.get('StandardErrorContent', ''),
         }
-
     return {"statusCode": 200, "body": results}
 
