@@ -70,11 +70,6 @@ output "split_keys" {
 }
 
 
-output "filtered_keys" {
-  description = "Map of model information extracted from file prefixes."
-  value       = local.filtered_keys
-}
-
 output "model_info_attrs" {
   description = "Map of model information extracted from file prefixes."
   value       = local.model_info_attrs
