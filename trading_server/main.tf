@@ -7,7 +7,6 @@ provider "aws" {
 data "aws_s3_objects" "models" {
   bucket = var.bucket_name
   prefix = "models/"
-  delimiter = "/"
 }
 
 output "s3_model_object_keys" {
