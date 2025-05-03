@@ -51,6 +51,37 @@ else
   echo "nats_public_ip=$NATS_PUBLIC_IP" >> "$CONFIG"
 fi
 
+# -------------------------------------------------------
+# 1) Create the standalone upload script
+# -------------------------------------------------------
+cat <<'EOF' > /usr/local/bin/upload_app_log.sh
+#!/bin/bash
+# loads S3 target from deployment_config.txt and pushes live_trader.log → app.log
+
+# load variables
+source /home/ec2-user/deployment_config.txt
+
+# perform upload (always overwrites app.log)
+aws s3 cp \
+  /home/ec2-user/live_trader.log \
+  s3://"$bucket_name"/models/"$model_type"/"$symbol"/"$model_number"/logs/app.log
+EOF
+
+chmod +x /usr/local/bin/upload_app_log.sh
+echo "Created /usr/local/bin/upload_app_log.sh"
+
+# -------------------------------------------------------
+# 2) Ensure the cron job is in ec2-user's crontab
+# -------------------------------------------------------
+CRON_CMD="*/15 * * * * sleep 45 && /usr/local/bin/upload_app_log.sh"
+# only add if not already present
+if ! crontab -u ec2-user -l 2>/dev/null | grep -Fq "/usr/local/bin/upload_app_log.sh"; then
+  ( crontab -u ec2-user -l 2>/dev/null; echo "$CRON_CMD" ) | crontab -u ec2-user -
+  echo "Installed cron entry for ec2-user: $CRON_CMD"
+else
+  echo "Cron entry already exists for upload_app_log.sh"
+fi
+
 
 # Run the Python ingestion script.
 echo "Running live_trader.py..."
