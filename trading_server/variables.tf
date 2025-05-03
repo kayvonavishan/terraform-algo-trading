@@ -10,7 +10,7 @@ variable "bucket_name" {
 
 variable "instance_type" {
   description = "The instance type to deploy (e.g., t2.micro)."
-  default     = "t2.small"
+  default     = "c8g.medium"
 }
 
 variable "key_name" {
