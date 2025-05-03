@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo yum install crontab ##Should be apart of AMI!
+
 # (Optional) Print a message to indicate local execution by SSM
 echo "Executing commands on the EC2 instance locally via SSM..."
 
