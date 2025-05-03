@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sudo yum install -y cronie ##Should be apart of AMI!
-sudo systemctl enable crond
+sudo systemctl start crond
 
 # (Optional) Print a message to indicate local execution by SSM
 echo "Executing commands on the EC2 instance locally via SSM..."
