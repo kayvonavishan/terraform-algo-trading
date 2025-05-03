@@ -104,6 +104,18 @@ resource "aws_s3_bucket_policy" "allow_instance_s3_access" {
       },
       "Action": "s3:GetObject",
       "Resource": "arn:aws:s3:::${var.bucket_name}/*"
+    },
+    {
+      "Sid": "AllowPutObject",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/trading_server_instance_role"
+      },
+      "Action": [
+        "s3:PutObject",
+        "s3:PutObjectAcl"
+      ],
+      "Resource": "arn:aws:s3:::${var.bucket_name}/*"
     }
   ]
 }
