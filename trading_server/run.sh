@@ -1,6 +1,7 @@
 #!/bin/bash
 
-sudo yum install crontab ##Should be apart of AMI!
+sudo yum install -y cronie ##Should be apart of AMI!
+sudo systemctl enable crond
 
 # (Optional) Print a message to indicate local execution by SSM
 echo "Executing commands on the EC2 instance locally via SSM..."
@@ -82,6 +83,14 @@ if ! crontab -u ec2-user -l 2>/dev/null | grep -Fq "/usr/local/bin/upload_app_lo
   echo "Installed cron entry for ec2-user: $CRON_CMD"
 else
   echo "Cron entry already exists for upload_app_log.sh"
+fi
+
+#delete old log file
+if [ -f /home/ec2-user/live_trader.log ]; then
+  rm /home/ec2-user/live_trader.log
+  echo "Deleted /home/ec2-user/live_trader.log"
+else
+  echo "File does not exist, nothing to do."
 fi
 
 
