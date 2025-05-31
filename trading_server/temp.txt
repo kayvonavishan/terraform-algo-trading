@@ -61,3 +61,73 @@ export S3_BUCKET=algo-model-deploy
 
 git config set --global remote.origin.url "https://kayvonavishan:MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git"
 
+
+
+
+################################
+####Installing python3.12 #########
+################################
+
+sudo dnf update -y
+sudo dnf groupinstall -y "Development Tools"
+sudo dnf install -y \
+  openssl-devel \
+  bzip2-devel \
+  libffi-devel \
+  zlib-devel \
+  wget \
+  make
+
+cd /usr/src
+sudo wget https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tgz
+sudo tar xzf Python-3.12.2.tgz
+
+cd Python-3.12.2
+sudo ./configure --enable-optimizations
+sudo make -j "$(nproc)"
+
+sudo make altinstall
+
+sudo ln -s /usr/local/bin/python3.12 /usr/bin/python3.12
+sudo ln -s /usr/local/bin/pip3.12    /usr/bin/pip3.12
+
+/usr/bin/python3 -m pip uninstall websockets nats-py
+/usr/bin/python3 -m pip uninstall alpaca-py
+/usr/bin/python3 -m pip uninstall alpaca_trade_api 
+/usr/bin/python3 -m pip uninstall plotly
+/usr/bin/python3 -m pip uninstall numba
+/usr/bin/python3 -m pip uninstall tqdm
+/usr/bin/python3 -m pip uninstall matplotlib
+/usr/bin/python3 -m pip uninstall ta
+/usr/bin/python3 -m pip uninstall boto3
+/usr/bin/python3 -m pip uninstall catboost
+/usr/bin/python3 -m pip uninstall lightgbm
+/usr/bin/python3 -m pip uninstall xgboost==2.1.2 #needs to match version from where models were saved
+/usr/bin/python3 -m pip uninstall psutil
+/usr/bin/python3 -m pip uninstall seaborn
+sudo /usr/bin/python3 -m pip uninstall torch
+
+/usr/local/bin/python3.12 -m pip install websockets nats-py
+/usr/local/bin/python3.12 -m pip install alpaca-py
+/usr/local/bin/python3.12 -m pip install alpaca_trade_api 
+/usr/local/bin/python3.12 -m pip install plotly
+/usr/local/bin/python3.12 -m pip install numba
+/usr/local/bin/python3.12 -m pip install tqdm
+/usr/local/bin/python3.12 -m pip install matplotlib
+/usr/local/bin/python3.12 -m pip install ta
+/usr/local/bin/python3.12 -m pip install boto3
+/usr/local/bin/python3.12 -m pip install catboost
+/usr/local/bin/python3.12 -m pip install lightgbm
+/usr/local/bin/python3.12 -m pip install xgboost==2.1.2 #needs to match version from where models were saved
+/usr/local/bin/python3.12 -m pip install psutil
+/usr/local/bin/python3.12 -m pip install seaborn
+
+/usr/local/bin/python3.12 -m pip install TA-Lib
+
+cd ~/algo-feature-engineering
+/usr/local/bin/python3.12 -m pip install .
+
+sudo mkdir /home/tmp
+sudo chmod 777 /home/tmp
+sudo TMPDIR=/home/tmp /usr/local/bin/python3.12 -m pip install --no-cache-dir torch \
+    --index-url https://download.pytorch.org/whl/cpu

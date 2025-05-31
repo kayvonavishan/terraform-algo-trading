@@ -97,4 +97,4 @@ fi
 # Run the Python ingestion script.
 echo "Running live_trader.py..."
 cd backup_vscode
-sudo -u ec2-user /usr/bin/python3 deployment/live_trader.py >> /home/ec2-user/live_trader.log 2>&1 &
+sudo -u ec2-user /usr/local/bin/python3.12 deployment/live_trader.py >> /home/ec2-user/live_trader.log 2>&1 &
