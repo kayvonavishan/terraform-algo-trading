@@ -124,7 +124,6 @@ resource "aws_iam_role_policy" "dashboard_policy" {
       ],
       "Resource": "*"
     },
-
     {
       "Sid": "GetTradeObjects",
       "Effect": "Allow",
@@ -138,7 +137,10 @@ resource "aws_iam_role_policy" "dashboard_policy" {
       "Resource": "arn:aws:s3:::${var.bucket_name}",
       "Condition": {
         "StringLike": {
-          "s3:prefix": ["models/*/*/*/trades/*"]
+          "s3:prefix": [
+            "models/*/*/*/trades/*",
+            "models/*/*/*/trades/"
+          ]
         }
       }
     }
