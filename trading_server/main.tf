@@ -20,10 +20,10 @@ data "aws_ami" "trading_server" {
 
   filter {
     name   = "name"
-    values = ["trading-server"]
+    values = ["trading-server*"]
   }
 
-  # Adjust this to match the owner of the AMI. If this is a private AMI owned by your account use "self".
+  # If it’s a private AMI in your account:
   owners = ["self"]
 }
 
