@@ -106,6 +106,22 @@ sudo ln -s /usr/local/bin/pip3.12    /usr/bin/pip3.12
 /usr/bin/python3 -m pip uninstall psutil
 /usr/bin/python3 -m pip uninstall seaborn
 sudo /usr/bin/python3 -m pip uninstall torch
+sudo /usr/bin/python3 -m pip uninstall \
+    nvidia-cublas-cu12 \
+    nvidia-cuda-cupti-cu12 \
+    nvidia-cuda-nvrtc-cu12 \
+    nvidia-cuda-runtime-cu12 \
+    nvidia-cudnn-cu12 \
+    nvidia-cufft-cu12 \
+    nvidia-cufile-cu12 \
+    nvidia-curand-cu12 \
+    nvidia-cusolver-cu12 \
+    nvidia-cusparse-cu12 \
+    nvidia-cusparselt-cu12 \
+    nvidia-nccl-cu12 \
+    nvidia-nvjitlink-cu12 \
+    nvidia-nvtx-cu12 \
+    triton
 
 /usr/local/bin/python3.12 -m pip install websockets nats-py
 /usr/local/bin/python3.12 -m pip install alpaca-py
@@ -121,6 +137,7 @@ sudo /usr/bin/python3 -m pip uninstall torch
 /usr/local/bin/python3.12 -m pip install xgboost==2.1.2 #needs to match version from where models were saved
 /usr/local/bin/python3.12 -m pip install psutil
 /usr/local/bin/python3.12 -m pip install seaborn
+/usr/local/bin/python3.12 -m pip install boto3
 
 /usr/local/bin/python3.12 -m pip install TA-Lib
 
