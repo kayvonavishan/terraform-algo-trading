@@ -91,10 +91,10 @@ resource "aws_iam_role_policy" "s3_config_read" {
 EOF
 }
 
-# ── dashboard ‑ specific permissions ─────────────────────────────────────────
 resource "aws_iam_role_policy" "dashboard_policy" {
   name = "dashboard-access"
   role = aws_iam_role.instance_role.id
+
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -137,9 +137,10 @@ resource "aws_iam_role_policy" "dashboard_policy" {
       "Condition": {
         "StringLike": {
           "s3:prefix": [
-            "models/*",                  
-            "models/*/*/*/trades/*",     
-            "models/*/*/*/trades/"       
+            "models/",                
+            "models/*",                 
+            "models/*/*/*/trades/*",    
+            "models/*/*/*/trades/"      
           ]
         }
       }
@@ -148,6 +149,7 @@ resource "aws_iam_role_policy" "dashboard_policy" {
 }
 EOF
 }
+
 
 
 # ***** 1B: SSM Support *****
