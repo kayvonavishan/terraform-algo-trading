@@ -137,9 +137,9 @@ resource "aws_iam_role_policy" "dashboard_policy" {
       "Condition": {
         "StringLike": {
           "s3:prefix": [
-            "models/*",                  # ← allow listing under "models/"
-            "models/*/*/*/trades/*",     # ← still allow listing files in trades/
-            "models/*/*/*/trades/"       # ← also allow listing the "trades/" subfolders
+            "models/*",                  
+            "models/*/*/*/trades/*",     
+            "models/*/*/*/trades/"       
           ]
         }
       }
