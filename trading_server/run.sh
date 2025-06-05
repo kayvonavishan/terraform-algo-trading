@@ -61,6 +61,9 @@ cat <<'EOF' > /usr/local/bin/upload_app_log.sh
 #!/bin/bash
 # loads S3 target from deployment_config.txt and pushes live_trader.log → app.log
 
+set -euo pipefail
+S3_ROOT="s3://${bucket_name}/models/${model_type}/${symbol}/${model_number}"
+
 # load variables
 source /home/ec2-user/deployment_config.txt
 
@@ -68,6 +71,12 @@ source /home/ec2-user/deployment_config.txt
 aws s3 cp \
   /home/ec2-user/live_trader.log \
   s3://"$bucket_name"/models/"$model_type"/"$symbol"/"$model_number"/logs/app.log
+
+# 2) Upload today’s (and any back‑filled) trade files – skips unchanged files
+aws s3 sync /home/ec2-user/ "${S3_ROOT}/trades/" \
+  --exclude "*" \
+  --include "/home/ec2-user/trades_*.csv" \
+  --only-show-errors
 EOF
 
 chmod +x /usr/local/bin/upload_app_log.sh
