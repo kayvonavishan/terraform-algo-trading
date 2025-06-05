@@ -59,12 +59,12 @@ fi
 cat <<'EOF' > /usr/local/bin/upload_app_log.sh
 #!/bin/bash
 # loads S3 target from deployment_config.txt and pushes live_trader.log → app.log
+# load variables
+source /home/ec2-user/deployment_config.txt
 
 set -euo pipefail
 S3_ROOT="s3://${bucket_name}/models/${model_type}/${symbol}/${model_number}"
 
-# load variables
-source /home/ec2-user/deployment_config.txt
 
 # perform upload (always overwrites app.log)
 aws s3 cp \
