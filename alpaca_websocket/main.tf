@@ -130,20 +130,10 @@ resource "aws_iam_role_policy" "dashboard_policy" {
       "Resource": "arn:aws:s3:::${var.bucket_name}/models/*/*/*/trades/*"
     },
     {
-      "Sid": "ListTradePrefixes",
+      "Sid": "AllowListAllModelsPrefix",
       "Effect": "Allow",
       "Action": ["s3:ListBucket"],
-      "Resource": "arn:aws:s3:::${var.bucket_name}",
-      "Condition": {
-        "StringLike": {
-          "s3:prefix": [
-            "models/",                
-            "models/*",                 
-            "models/*/*/*/trades/*",    
-            "models/*/*/*/trades/"      
-          ]
-        }
-      }
+      "Resource": "arn:aws:s3:::${var.bucket_name}"
     }
   ]
 }
