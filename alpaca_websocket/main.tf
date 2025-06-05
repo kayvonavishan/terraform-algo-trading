@@ -95,7 +95,6 @@ EOF
 resource "aws_iam_role_policy" "dashboard_policy" {
   name = "dashboard-access"
   role = aws_iam_role.instance_role.id
-
   policy = <<EOF
 {
   "Version": "2012-10-17",
