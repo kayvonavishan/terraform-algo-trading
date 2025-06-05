@@ -141,7 +141,7 @@ resource "aws_iam_role_policy" "dashboard_policy" {
       "Action": ["s3:GetObject"],
       "Resource": [
         "arn:aws:s3:::${var.bucket_name}/models/*/*/*/trades/*",
-        "arn:aws:s3:::${var.bucket_name}/models/*/*/*/logs/app.log"   # ← NEW
+        "arn:aws:s3:::${var.bucket_name}/models/*/*/*/logs/app.log" 
       ]
     }
   ]
