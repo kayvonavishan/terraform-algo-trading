@@ -23,7 +23,6 @@ git config set --global remote.origin.url "https://kayvonavishan:${MYSSHKEY}@git
 cd /home/ec2-user
 export HOME=/home/ec2-user
 
-
 # Check if the repository already exists; if not, clone it; if it does, pull updates.
 if [ ! -d "algo-modeling-v2" ]; then
   echo "Repository not found. Cloning the repository..."
