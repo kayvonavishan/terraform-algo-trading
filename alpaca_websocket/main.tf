@@ -100,15 +100,12 @@ resource "aws_iam_role_policy" "dashboard_policy" {
 {
   "Version": "2012-10-17",
   "Statement": [
-    # -------- EC2: discover running model instances -------------------------
     {
       "Sid": "DescribeTradingInstances",
       "Effect": "Allow",
       "Action": ["ec2:DescribeInstances"],
       "Resource": "*"
     },
-
-    # -------- SSM: run and fetch health‑check commands ----------------------
     {
       "Sid": "SendHealthCheckCommand",
       "Effect": "Allow",
@@ -128,7 +125,6 @@ resource "aws_iam_role_policy" "dashboard_policy" {
       "Resource": "*"
     },
 
-    # -------- S3: read trade files for the dashboard ------------------------
     {
       "Sid": "GetTradeObjects",
       "Effect": "Allow",
