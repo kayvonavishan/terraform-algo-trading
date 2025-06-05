@@ -134,12 +134,20 @@ resource "aws_iam_role_policy" "dashboard_policy" {
       "Effect": "Allow",
       "Action": ["s3:ListBucket"],
       "Resource": "arn:aws:s3:::${var.bucket_name}"
+    },
+    {
+      "Sid": "GetTradeObjectsAndLogs",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject"],
+      "Resource": [
+        "arn:aws:s3:::${var.bucket_name}/models/*/*/*/trades/*",
+        "arn:aws:s3:::${var.bucket_name}/models/*/*/*/logs/app.log"   # ← NEW
+      ]
     }
   ]
 }
 EOF
 }
-
 
 
 # ***** 1B: SSM Support *****
