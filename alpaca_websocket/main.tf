@@ -91,6 +91,66 @@ resource "aws_iam_role_policy" "s3_config_read" {
 EOF
 }
 
+# ── dashboard ‑ specific permissions ─────────────────────────────────────────
+resource "aws_iam_role_policy" "dashboard_policy" {
+  name = "dashboard-access"
+  role = aws_iam_role.instance_role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    # -------- EC2: discover running model instances -------------------------
+    {
+      "Sid": "DescribeTradingInstances",
+      "Effect": "Allow",
+      "Action": ["ec2:DescribeInstances"],
+      "Resource": "*"
+    },
+
+    # -------- SSM: run and fetch health‑check commands ----------------------
+    {
+      "Sid": "SendHealthCheckCommand",
+      "Effect": "Allow",
+      "Action": ["ssm:SendCommand"],
+      "Resource": [
+        "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:instance/*",
+        "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript"
+      ]
+    },
+    {
+      "Sid": "ReadCommandStatus",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetCommandInvocation",
+        "ssm:ListCommandInvocations"
+      ],
+      "Resource": "*"
+    },
+
+    # -------- S3: read trade files for the dashboard ------------------------
+    {
+      "Sid": "GetTradeObjects",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject"],
+      "Resource": "arn:aws:s3:::${var.bucket_name}/models/*/*/*/trades/*"
+    },
+    {
+      "Sid": "ListTradePrefixes",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::${var.bucket_name}",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["models/*/*/*/trades/*"]
+        }
+      }
+    }
+  ]
+}
+EOF
+}
+
 
 # ***** 1B: SSM Support *****
 # Attach the AmazonSSMManagedInstanceCore managed policy so that the EC2 instance can use AWS Systems Manager (SSM).
