@@ -37,7 +37,7 @@ else
   sudo -u ec2-user git clone https://kayvonavishan:$MYSSHKEY@github.com/kayvonavishan/algo-modeling-v2.git
   sudo chown -R ec2-user:ec2-user /home/ec2-user/algo-modeling-v2
   cd algo-modeling-v2
-  sudo -u ec2-user git fetch >> /home/ec2-user/ingestion.log
+  sudo -u ec2-user git fetch > /home/ec2-user/ingestion.log
   sudo -u ec2-user git checkout feature/deployment-final-v2 >> /home/ec2-user/ingestion.log
   sudo -u ec2-user git pull >> /home/ec2-user/ingestion.log
 fi
@@ -52,4 +52,5 @@ sudo -u ec2-user /usr/bin/python3 backup_vscode/deployment/alpaca_ingestion.py >
 
 # Run streamlit dashboard
 echo "Running Streamlit Dashboard..."
-sudo -u ec2-user streamlit run algo-modeling-v2/backup_vscode/deployment/monitoring/live_model_dashboard.py >> /home/ec2-user/ingestion.log 2>&1 &
+/home/ec2-user/.local/bin/streamlit run /home/ec2-user/algo-modeling-v2/backup_vscode/deployment/monitoring/live_model_dashboard.py >> /home/ec2-user/ingestion.log 2>&1 &
+
