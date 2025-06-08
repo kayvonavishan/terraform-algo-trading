@@ -49,3 +49,7 @@ nohup nats-server -DV -m 8222 > /home/ec2-user/nats.log 2>&1 &
 # Run the Python ingestion script.
 echo "Running alpaca_ingestion.py..."
 sudo -u ec2-user /usr/bin/python3 backup_vscode/deployment/alpaca_ingestion.py >> /home/ec2-user/ingestion.log 2>&1 &
+
+# Run streamlit dashboard
+echo "Running Streamlit Dashboard..."
+sudo -u ec2-user streamlit run algo-modeling-v2/backup_vscode/deployment/monitoring/live_model_dashboard.py >> /home/ec2-user/ingestion.log 2>&1 &
