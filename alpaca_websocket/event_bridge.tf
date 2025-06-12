@@ -38,8 +38,8 @@ resource "aws_iam_role_policy" "scheduler_invoke_lambda" {
 # 2) Scheduler: every day at 9AM America/New_York
 #############################################
 
-resource "aws_scheduler_schedule" "git_clone_daily_9am_est" {
-  name                         = "git-clone-lambda-daily-9am-est"
+resource "aws_scheduler_schedule" "alpaca_websocket_daily_9am_est" {
+  name                         = "alpaca-websocket-lambda-daily-9am-est"
   schedule_expression          = "cron(0 9 * * ? *)"
   schedule_expression_timezone = "America/New_York"
 
