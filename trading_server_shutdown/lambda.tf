@@ -79,11 +79,11 @@ resource "aws_lambda_function" "shutdown_lambda" {
   filename         = data.archive_file.shutdown_lambda_package.output_path
   source_code_hash = data.archive_file.shutdown_lambda_package.output_base64sha256
 
-  environment {
-    variables = {
-      AWS_REGION = var.aws_region
-    }
-  }
+  #environment {
+  #  variables = {
+  #    AWS_REGION = var.aws_region
+  #  }
+  #}
 
   timeout = 60
   publish = true
