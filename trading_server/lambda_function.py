@@ -23,7 +23,7 @@ def lambda_handler(event, context):
         # Wait up to ~60s
         waiter.wait(InstanceIds=[ingest_id], WaiterConfig={'Delay':5, 'MaxAttempts':12})
         # extra buffer for SSM agent
-        time.sleep(5)
+        time.sleep(120)
 
     # ─── 3) RE-DESCRIBE TO GET PUBLIC IP ──────────────────────────────────
     ingest_inst = ec2.describe_instances(Filters=[ingest_tag])\
