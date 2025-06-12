@@ -81,6 +81,31 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
+# Role for eventbridge chaining
+# Look up your TradingServerLambda’s ARN
+data "aws_lambda_function" "trading_server_lambda" {
+  function_name = "TradingServerLambda"
+}
+
+# Allow the Alpaca role to call InvokeFunction on TradingServerLambda
+resource "aws_iam_role_policy" "allow_alpaca_invoke_trading" {
+  name = "AllowAlpacaInvokeTradingServer"
+  
+  # <-- this is the same role you created above
+  role = aws_iam_role.lambda_role.name
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "lambda:InvokeFunction",
+        Resource = data.aws_lambda_function.trading_server_lambda.arn
+      }
+    ]
+  })
+}
+
 ###############################
 # Lambda Function
 ###############################
@@ -137,3 +162,4 @@ resource "aws_lambda_function" "alpaca_websocket_lambda" {
 output "lambda_function_name" {
   value = aws_lambda_function.alpaca_websocket_lambda.function_name
 }
+
