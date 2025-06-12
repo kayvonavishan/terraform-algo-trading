@@ -16,12 +16,12 @@ data "aws_iam_policy_document" "lambda_assume_role_policy" {
 
 # Create an IAM role for the Lambda function
 resource "aws_iam_role" "lambda_role" {
-  name               = "git_clone_lambda_role"
+  name               = "alpaca_websocket_lambda_role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 }
 
 resource "aws_iam_policy" "lambda_policy" {
-  name        = "git_clone_lambda_policy"
+  name        = "alpaca_websocket_lambda_policy"
   description = "Allow Lambda function to access Secrets Manager, CloudWatch Logs, describe EC2 instances, interact with SSM, and manage network interfaces."
   policy      = <<EOF
 {
@@ -98,8 +98,8 @@ data "archive_file" "lambda_package" {
 }
 
 # Define the Lambda function resource
-resource "aws_lambda_function" "git_clone_lambda" {
-  function_name = "GitCloneLambda"
+resource "aws_lambda_function" "alpaca_websocket_lambda" {
+  function_name = "AlpacaWebsocketLambda"
   role          = aws_iam_role.lambda_role.arn
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.8"  # Change to your desired Python runtime version
@@ -135,5 +135,5 @@ resource "aws_lambda_function" "git_clone_lambda" {
 ###############################
 
 output "lambda_function_name" {
-  value = aws_lambda_function.git_clone_lambda.function_name
+  value = aws_lambda_function.alpaca_websocket_lambda.function_name
 }
