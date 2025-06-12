@@ -120,7 +120,7 @@ resource "aws_lambda_function" "git_clone_lambda" {
   }
 
   # Adjust the timeout as needed (in seconds)
-  timeout = 30
+  timeout = 300
 
   # VPC configuration connecting Lambda to the same subnet and security group as the EC2 instance
   #vpc_config {
