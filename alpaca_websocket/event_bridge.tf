@@ -1,8 +1,8 @@
-############################################
-# 1) IAM Role so Scheduler can invoke Lambda
-############################################
+###############################
+# 1) IAM Role for Scheduler
+###############################
 
-data "aws_iam_policy_document" "scheduler_assume_role_policy" {
+data "aws_iam_policy_document" "scheduler_assume_role" {
   statement {
     effect = "Allow"
     principals {
@@ -14,34 +14,35 @@ data "aws_iam_policy_document" "scheduler_assume_role_policy" {
 }
 
 resource "aws_iam_role" "scheduler_exec_role" {
-  name               = "eventbridge-scheduler-invoke-lambda-role"
-  assume_role_policy = data.aws_iam_policy_document.scheduler_assume_role_policy.json
+  name               = "eventbridge-scheduler-invoke-lambda"
+  assume_role_policy = data.aws_iam_policy_document.scheduler_assume_role.json
 }
 
-resource "aws_iam_role_policy" "scheduler_lambda_invoke_policy" {
+resource "aws_iam_role_policy" "scheduler_invoke_lambda" {
   name = "scheduler-invoke-lambda"
   role = aws_iam_role.scheduler_exec_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = "lambda:InvokeFunction"
-      Resource = aws_lambda_function.alpaca_websocket_lambda.arn
-    }]
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "lambda:InvokeFunction"
+        Resource = aws_lambda_function.alpaca_websocket_lambda.arn
+      }
+    ]
   })
 }
 
-###################################################
-# 2) EventBridge Scheduler Schedule at 9 AM New York
-###################################################
+#############################################
+# 2) Scheduler: every day at 9AM America/New_York
+#############################################
 
-resource "aws_eventbridge_scheduler_schedule" "git_clone_daily_9am_est" {
-  name                          = "git-clone-lambda-daily-9am-est"
-  schedule_expression           = "cron(0 9 * * ? *)"
-  schedule_expression_timezone  = "America/New_York"
+resource "aws_scheduler_schedule" "git_clone_daily_9am_est" {
+  name                         = "git-clone-lambda-daily-9am-est"
+  schedule_expression          = "cron(0 9 * * ? *)"
+  schedule_expression_timezone = "America/New_York"
 
-  # OFF = strict “fire exactly at 09:00:00”
   flexible_time_window {
     mode = "OFF"
   }
@@ -49,7 +50,6 @@ resource "aws_eventbridge_scheduler_schedule" "git_clone_daily_9am_est" {
   target {
     arn      = aws_lambda_function.alpaca_websocket_lambda.arn
     role_arn = aws_iam_role.scheduler_exec_role.arn
-    # if your Lambda handler needs no payload:
-    input = jsonencode({})
+    input    = jsonencode({})      # empty JSON payload
   }
 }
