@@ -28,7 +28,7 @@ data "aws_lambda_function" "alpaca_websocket_lambda" {
 }
 
 resource "aws_lambda_function_event_invoke_config" "chain_alpaca_to_trading" {
-  function_name = aws_lambda_function.alpaca_websocket_lambda.function_name
+  function_name = data.aws_lambda_function.alpaca_websocket_lambda.function_name
 
   # optional: keep failed events for 1h, never retry
   maximum_event_age_in_seconds = 3600
