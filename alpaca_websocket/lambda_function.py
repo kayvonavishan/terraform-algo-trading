@@ -1,80 +1,57 @@
 import os
 import time
 import boto3
+import json
 
 def lambda_handler(event, context):
-    region = os.environ.get("AWS_REGION", "us-east-1")
-    ec2 = boto3.client("ec2", region_name=region)
-    ssm = boto3.client("ssm", region_name=region)
+    region_name = os.environ.get("AWS_REGION", "us-east-1")
+    ssm = boto3.client("ssm", region_name=region_name)
+    ec2 = boto3.client("ec2", region_name=region_name)
 
-    # ─── 1) FIND INGEST NODE ────────────────────────────────────────────────
-    ingest_tag = {'Name': 'tag:Name', 'Values': ['alpaca-websocket-ingest']}
-    all_ingest = ec2.describe_instances(Filters=[ingest_tag]).get('Reservations', [])
-    if not all_ingest:
-        raise Exception("No EC2 found with tag Name=alpaca-websocket-ingest")
-    ingest_inst = all_ingest[0]['Instances'][0]
-    ingest_id   = ingest_inst['InstanceId']
-    ingest_state = ingest_inst['State']['Name']
-
-    # ─── 2) START INGEST NODE IF NEEDED ────────────────────────────────────
-    if ingest_state != 'running':
-        ec2.start_instances(InstanceIds=[ingest_id])
-        waiter = ec2.get_waiter('instance_running')
-        # Wait up to ~60s
-        waiter.wait(InstanceIds=[ingest_id], WaiterConfig={'Delay':5, 'MaxAttempts':12})
-        # extra buffer for SSM agent
-        time.sleep(5)
-
-    # ─── 3) RE-DESCRIBE TO GET PUBLIC IP ──────────────────────────────────
-    ingest_inst = ec2.describe_instances(Filters=[ingest_tag])\
-                    ['Reservations'][0]['Instances'][0]
-    nats_ip = ingest_inst.get('PublicIpAddress')
-    if not nats_ip:
-        raise Exception("Ingest node has no PublicIpAddress")
-
-    # ─── 4) FIND ALL TRADING SERVERS ─────────────────────────────────────
-    trade_tag = {'Name': 'tag:Name', 'Values': ['trading-server*']}
-    all_trade = ec2.describe_instances(Filters=[trade_tag]).get('Reservations', [])
-    if not all_trade:
-        raise Exception("No EC2 found with tag Name=trading-server*")
-    trade_insts = [i for r in all_trade for i in r['Instances']]
-    trade_ids   = [i['InstanceId'] for i in trade_insts]
-
-    # ─── 5) START ANY TRADING SERVERS NOT RUNNING ─────────────────────────
-    to_start = [i['InstanceId'] for i in trade_insts if i['State']['Name'] != 'running']
-    if to_start:
-        ec2.start_instances(InstanceIds=to_start)
-        waiter = ec2.get_waiter('instance_running')
-        waiter.wait(InstanceIds=to_start, WaiterConfig={'Delay':5, 'MaxAttempts':12})
-        time.sleep(5)
-
-    # ─── 6) LOAD YOUR SCRIPT & INJECT NATS IP ─────────────────────────────
-    script_path = os.path.join(os.getcwd(), 'run.sh')
-    with open(script_path) as f:
-        lines = f.read().splitlines()
-    commands = [
-        f"export NATS_PUBLIC_IP={nats_ip}",
-        *lines
+    # 1. Locate ANY instance with your Name tag
+    filters = [
+        {'Name': 'tag:Name', 'Values': ['alpaca-websocket-ingest']}
     ]
+    resp = ec2.describe_instances(Filters=filters)
+    instances = [
+        inst
+        for r in resp.get("Reservations", [])
+        for inst in r.get("Instances", [])
+    ]
+    if not instances:
+        raise Exception("No EC2 found with tag Name=alpaca-websocket-ingest")
 
-    # ─── 7) DISPATCH VIA SSM ──────────────────────────────────────────────
-    resp = ssm.send_command(
-        InstanceIds=trade_ids,
+    inst = instances[0]
+    instance_id = inst["InstanceId"]
+    state      = inst["State"]["Name"]
+
+    # 2. Start it if it’s not already running
+    if state != "running":
+        ec2.start_instances(InstanceIds=[instance_id])
+
+        # 3. Wait for the machine to boot and SSM agent to check in
+        waiter = ec2.get_waiter("instance_running")
+        waiter.wait(InstanceIds=[instance_id])
+        # give the SSM agent a few extra seconds to come online
+        time.sleep(30)
+
+    # 4. Now send your RunShellScript command exactly as before
+    with open(os.path.join(os.getcwd(), "run.sh")) as f:
+        commands = f.read().splitlines()
+
+    cmd = ssm.send_command(
+        InstanceIds=[instance_id],
         DocumentName="AWS-RunShellScript",
         Parameters={'commands': commands},
-        TimeoutSeconds=120,  # give yourself a bit more runway
+        TimeoutSeconds=60,
     )
-    cmd_id = resp['Command']['CommandId']
+    cid = cmd['Command']['CommandId']
 
-    # ─── 8) COLLECT RESULTS ──────────────────────────────────────────────
+    # (…then poll get_command_invocation exactly as you do now…)
     time.sleep(2)
-    results = {}
-    for iid in trade_ids:
-        inv = ssm.get_command_invocation(CommandId=cmd_id, InstanceId=iid)
-        results[iid] = {
-            "Status": inv['Status'],
-            "Stdout": inv.get('StandardOutputContent', ''),
-            "Stderr": inv.get('StandardErrorContent', ''),
-        }
+    inv = ssm.get_command_invocation(CommandId=cid, InstanceId=instance_id)
 
-    return {"statusCode": 200, "body": results}
+    return {
+        "statusCode": 200,
+        "body": inv.get("StandardOutputContent", "")
+    }
