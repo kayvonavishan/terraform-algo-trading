@@ -44,9 +44,9 @@ resource "aws_iam_policy" "lambda_policy" {
       "Resource": "arn:aws:logs:*:*:*"
     },
     {
-      "Sid": "EC2DescribeInstances",
+      "Sid": "EC2Instances",
       "Effect": "Allow",
-      "Action": "ec2:DescribeInstances",
+      "Action": ["ec2:DescribeInstances", "ec2:StartInstances"]
       "Resource": "*"
     },
     {
