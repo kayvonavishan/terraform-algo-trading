@@ -1,22 +1,33 @@
-# ======================================================================
-# locals  — discover default VPC & subnets if not provided  --------------
-# ======================================================================
-locals {
-  vpc_id = coalesce(var.vpc_id, data.aws_vpc.default.id)
-}
-
 data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnets" "public" {
-  filter { name = "vpc-id"   values = [local.vpc_id] }
-  filter { name = "tag:aws-cdk:subnet-type" values = ["Public"] }
+locals {
+  vpc_id = coalesce(var.vpc_id, data.aws_vpc.default.id)
 }
 
+# public subnets (tagged by CDK or named “Public”)
+data "aws_subnets" "public" {
+  filter {
+    name   = "vpc-id"
+    values = [local.vpc_id]
+  }
+  filter {
+    name   = "tag:aws-cdk:subnet-type"
+    values = ["Public"]
+  }
+}
+
+# private subnets
 data "aws_subnets" "private" {
-  filter { name = "vpc-id" values = [local.vpc_id] }
-  filter { name = "tag:aws-cdk:subnet-type" values = ["Private"] }
+  filter {
+    name   = "vpc-id"
+    values = [local.vpc_id]
+  }
+  filter {
+    name   = "tag:aws-cdk:subnet-type"
+    values = ["Private"]
+  }
 }
 
 locals {
