@@ -1,3 +1,4 @@
+# Find default VPC if not provided
 data "aws_vpc" "default" {
   default = true
 }
@@ -6,31 +7,32 @@ locals {
   vpc_id = coalesce(var.vpc_id, data.aws_vpc.default.id)
 }
 
-# public subnets (tagged by CDK or named “Public”)
-data "aws_subnets" "public" {
-  filter {
-    name   = "vpc-id"
-    values = [local.vpc_id]
-  }
-  filter {
-    name   = "tag:aws-cdk:subnet-type"
-    values = ["Public"]
-  }
+# Gather all subnet IDs in the VPC
+data "aws_subnet_ids" "all" {
+  vpc_id = local.vpc_id
 }
 
-# private subnets
-data "aws_subnets" "private" {
-  filter {
-    name   = "vpc-id"
-    values = [local.vpc_id]
-  }
-  filter {
-    name   = "tag:aws-cdk:subnet-type"
-    values = ["Private"]
-  }
+# Lookup each subnet to inspect auto-assign public IP setting
+data "aws_subnet" "each" {
+  for_each = toset(data.aws_subnet_ids.all.ids)
+  id       = each.value
 }
 
 locals {
-  public_subnet_id   = coalesce(var.public_subnet_id, element(data.aws_subnets.public.ids, 0))
-  private_subnet_ids = length(var.private_subnet_ids) > 0 ? var.private_subnet_ids : slice(data.aws_subnets.private.ids, 0, 2)
+  # Filter subnets that auto-assign public IPs (public subnets)
+  public_subnet_ids = [
+    for s in data.aws_subnet.each : s.id if s.map_public_ip_on_launch
+  ]
+
+  public_subnet_id = (
+    var.public_subnet_id != null ? var.public_subnet_id :
+    length(local.public_subnet_ids) > 0 ? local.public_subnet_ids[0] :
+    error("No public subnet found in VPC ${local.vpc_id}. Please set var.public_subnet_id.")
+  )
+
+  # Use user-supplied private_subnet_ids or the subnets created in subnets.tf
+  private_subnet_ids = (
+    length(var.private_subnet_ids) > 0 ? var.private_subnet_ids :
+    aws_subnet.private[*].id
+  )
 }
