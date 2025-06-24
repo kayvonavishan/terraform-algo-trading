@@ -8,11 +8,18 @@ locals {
 }
 
 # Gather all subnet IDs in the VPC
-data "aws_subnet_ids" "all" {
-  vpc_id = local.vpc_id
+data "aws_subnets" "all" {
+  filter {
+    name   = "vpc-id"
+    values = [local.vpc_id]
+  }
 }
 
 # Lookup each subnet to inspect auto-assign public IP setting
+data "aws_subnet" "each" {
+  for_each = toset(data.aws_subnets.all.ids)
+  id       = each.value
+}
 data "aws_subnet" "each" {
   for_each = toset(data.aws_subnet_ids.all.ids)
   id       = each.value
