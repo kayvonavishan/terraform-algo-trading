@@ -5,7 +5,7 @@ resource "random_password" "db" {
 
 resource "aws_db_subnet_group" "mlflow" {
   name       = "mlflow-db-subnets"
-  subnet_ids = local.private_subnet_ids
+  subnet_ids = aws_subnet.private[*].id
 }
 
 resource "aws_security_group" "rds" {
