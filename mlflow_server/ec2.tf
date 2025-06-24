@@ -2,9 +2,23 @@ resource "aws_security_group" "ec2" {
   name   = "mlflow-ec2"
   vpc_id = local.vpc_id
 
-  ingress { from_port = 22 to_port = 22 protocol = "tcp" cidr_blocks = var.allowed_cidr_blocks }
-  ingress { from_port = var.mlflow_port to_port = var.mlflow_port protocol = "tcp" cidr_blocks = var.allowed_cidr_blocks }
-  egress  { from_port = 0 to_port = 0 protocol = "-1" cidr_blocks = ["0.0.0.0/0"] }
+  ingress { 
+    from_port = 22 
+    to_port = 22 protocol = "tcp" 
+    cidr_blocks = var.allowed_cidr_blocks 
+  }
+  ingress { 
+    from_port = var.mlflow_port 
+    to_port = var.mlflow_port 
+    protocol = "tcp" 
+    cidr_blocks = var.allowed_cidr_blocks 
+  }
+  egress { 
+    from_port = 0 
+    to_port = 0 
+    protocol = "-1" 
+    cidr_blocks = ["0.0.0.0/0"] 
+  }
 }
 
 resource "aws_instance" "mlflow" {
@@ -22,5 +36,7 @@ resource "aws_instance" "mlflow" {
     mlflow_port  = var.mlflow_port
   })
 
-  tags = { Name = "mlflow-server" }
+  tags = { 
+    Name = "mlflow-server" 
+  }
 }
