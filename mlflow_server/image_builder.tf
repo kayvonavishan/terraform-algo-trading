@@ -1,4 +1,3 @@
-# Base Ubuntu 22.04 AMI
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"]
@@ -13,11 +12,10 @@ resource "aws_imagebuilder_component" "mlflow_install" {
   name       = "mlflow-install"
   platform   = "Linux"
   version    = "1.0.0"
-  description= "Install MLflow and create systemd service"
 
   data = <<-YAML
     name: mlflow-install
-    description: Install MLflow + dependencies
+    description: Install MLflow ${var.mlflow_version}
     schemaVersion: 1.0
     phases:
       - name: build
@@ -57,10 +55,13 @@ resource "aws_imagebuilder_image_recipe" "mlflow" {
   name         = "mlflow-ubuntu-22"
   version      = "1.0.0"
   parent_image = data.aws_ami.ubuntu.id
-  components   = [aws_imagebuilder_component.mlflow_install.arn]
+
+  component {
+    component_arn = aws_imagebuilder_component.mlflow_install.arn
+  }
 }
 
-# —— Infra config for the build ——
+
 resource "aws_security_group" "builder" {
   name   = "mlflow-imagebuilder-sg"
   vpc_id = local.vpc_id
@@ -70,6 +71,17 @@ resource "aws_security_group" "builder" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+data "aws_iam_policy_document" "assume_ec2" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
   }
 }
 
@@ -105,7 +117,6 @@ resource "aws_imagebuilder_image" "mlflow" {
   }
 }
 
-# Extract AMI ID from Image Builder output
 locals {
   mlflow_ami_id = one(aws_imagebuilder_image.mlflow.output_resources[0].amis).image
 }
