@@ -74,10 +74,6 @@ resource "aws_security_group" "builder" {
   }
 }
 
-
-  }
-}
-
 resource "aws_iam_role" "imagebuilder" {
   name               = "mlflow-imagebuilder-role"
   assume_role_policy = data.aws_iam_policy_document.assume_ec2.json
