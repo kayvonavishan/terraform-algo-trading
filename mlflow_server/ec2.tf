@@ -30,6 +30,8 @@ resource "aws_instance" "mlflow" {
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
   associate_public_ip_address = true
 
+  key_name = var.ssh_key_name
+
   user_data = templatefile("${path.module}/templates/mlflow_user_data.sh.tpl", {
     db_endpoint  = aws_rds_cluster.mlflow.endpoint,
     db_password  = random_password.db.result,
