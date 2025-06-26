@@ -46,3 +46,18 @@ resource "aws_rds_cluster" "mlflow" {
   vpc_security_group_ids = [aws_security_group.rds.id]
   storage_encrypted      = true
 }
+
+resource "aws_rds_cluster_instance" "writer" {
+  cluster_identifier = aws_rds_cluster.mlflow.id
+
+  # Aurora Serverless v2 uses the special class below
+  instance_class     = "db.serverless"
+
+  # Keep engine/engine_version aligned with the cluster
+  engine             = aws_rds_cluster.mlflow.engine
+  engine_version     = aws_rds_cluster.mlflow.engine_version
+
+  publicly_accessible = false
+  db_subnet_group_name = aws_db_subnet_group.mlflow.name
+  vpc_security_group_ids = [aws_security_group.rds.id]
+}
