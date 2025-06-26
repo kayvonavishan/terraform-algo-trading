@@ -31,7 +31,7 @@ resource "aws_security_group" "rds" {
 resource "aws_rds_cluster" "mlflow" {
   cluster_identifier = "mlflow-aurora"
   engine             = "aurora-postgresql"
-  engine_version     = "15.7"
+  engine_version     = "14.6"
   database_name      = "mlflow"
   master_username    = "mlflow"
   master_password    = random_password.db.result
