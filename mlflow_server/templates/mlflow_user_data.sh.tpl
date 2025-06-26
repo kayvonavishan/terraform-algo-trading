@@ -1,3 +1,4 @@
+#cloud-config
 write_files:
   - path: /etc/mlflow.env
     owner: root:root
