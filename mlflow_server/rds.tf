@@ -61,9 +61,3 @@ resource "aws_rds_cluster_instance" "writer" {
   publicly_accessible = false
   db_subnet_group_name = aws_db_subnet_group.mlflow.name
 }
-
-output "db_master_password" {
-  value       = random_password.db.result
-  description = "Aurora master password"
-  #sensitive   = false          # hides it in `terraform apply` plan output
-}
