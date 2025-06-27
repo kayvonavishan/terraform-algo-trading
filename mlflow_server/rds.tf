@@ -64,5 +64,5 @@ resource "aws_rds_cluster_instance" "writer" {
 output "db_master_password" {
   value       = random_password.db.result
   description = "Aurora master password"
-  sensitive   = false          # hides it in `terraform apply` plan output
+  #sensitive   = false          # hides it in `terraform apply` plan output
 }
