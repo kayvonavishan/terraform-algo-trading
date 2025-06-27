@@ -34,7 +34,8 @@ resource "aws_rds_cluster" "mlflow" {
   engine_version     = "16.6"
   database_name      = "mlflow"
   master_username    = "mlflow"
-  master_password    = random_password.db.result
+  #master_password    = random_password.db.result
+  master_password    = "mypw123321"
 
   serverlessv2_scaling_configuration {
     min_capacity             = 0
