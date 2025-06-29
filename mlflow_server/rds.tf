@@ -5,7 +5,7 @@ resource "random_password" "db" {
 
 resource "aws_db_subnet_group" "mlflow" {
   name       = "mlflow-db-subnets"
-  subnet_ids = aws_subnet.private[*].id
+  subnet_ids = local.public_subnet_ids
 }
 
 resource "aws_security_group" "rds" {
@@ -13,11 +13,13 @@ resource "aws_security_group" "rds" {
   vpc_id = local.vpc_id
 
   ingress {
-    description     = "Postgres from EC2"
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ec2.id]
+    description = "Postgres from my laptop"
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    # either lock down to your IP, e.g. ["1.2.3.4/32"],
+    # or use 0.0.0.0/0 if you really need globally open:
+    cidr_blocks = var.allowed_cidr_blocks  # set this to your client CIDR
   }
 
   egress {
@@ -58,6 +60,6 @@ resource "aws_rds_cluster_instance" "writer" {
   engine             = aws_rds_cluster.mlflow.engine
   engine_version     = aws_rds_cluster.mlflow.engine_version
 
-  publicly_accessible = false
+  publicly_accessible = true
   db_subnet_group_name = aws_db_subnet_group.mlflow.name
 }

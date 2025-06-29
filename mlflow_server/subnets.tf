@@ -16,3 +16,20 @@ resource "aws_subnet" "private" {
     Name = "mlflow-private-${count.index}"
   }
 }
+
+
+data "aws_subnets" "all" {
+  filter {
+    name   = "vpc-id"
+    values = [local.vpc_id]
+  }
+}
+
+locals {
+  public_subnet_ids = [
+    for s in data.aws_subnets.all.subnets : s.id
+    if !(s.tags["Name"] =~ "private")
+  ]
+}
+
+
