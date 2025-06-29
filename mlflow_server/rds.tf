@@ -8,6 +8,11 @@ resource "aws_db_subnet_group" "mlflow" {
   subnet_ids = local.public_subnet_ids
 }
 
+resource "aws_db_subnet_group" "mlflow_public" {
+  name       = "mlflow-db-public-subnets"
+  subnet_ids = local.public_subnet_ids
+}
+
 resource "aws_security_group" "rds" {
   name   = "mlflow-rds"
   vpc_id = local.vpc_id
@@ -45,7 +50,7 @@ resource "aws_rds_cluster" "mlflow" {
     seconds_until_auto_pause = 300
   }
 
-  db_subnet_group_name   = aws_db_subnet_group.mlflow.name
+  db_subnet_group_name   = aws_db_subnet_group.mlflow_public.name
   vpc_security_group_ids = [aws_security_group.rds.id]
   storage_encrypted      = true
 }
@@ -61,5 +66,5 @@ resource "aws_rds_cluster_instance" "writer" {
   engine_version     = aws_rds_cluster.mlflow.engine_version
 
   publicly_accessible = true
-  db_subnet_group_name = aws_db_subnet_group.mlflow.name
+  db_subnet_group_name = aws_db_subnet_group.mlflow_public.name
 }
