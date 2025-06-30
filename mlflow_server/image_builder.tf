@@ -27,7 +27,8 @@ resource "aws_imagebuilder_component" "mlflow_install" {
                 - apt-get install -y python3-pip postgresql-client
                 - pip3 install mlflow[extras]==${var.mlflow_version} boto3 psycopg2-binary
                 - |
-                  cat <<'EOF' > /etc/systemd/system/mlflow.service
+                  # ---------- unit file ----------
+                  cat >/etc/systemd/system/mlflow.service <<'UNIT'
                   [Unit]
                   Description=MLflow Tracking Server
                   Wants=network-online.target
@@ -35,19 +36,23 @@ resource "aws_imagebuilder_component" "mlflow_install" {
 
                   [Service]
                   Type=simple
-                  EnvironmentFile=/etc/mlflow.env
+                  EnvironmentFile=-/etc/mlflow.env      # the “-” makes it optional
                   ExecStart=/usr/local/bin/mlflow server \
-                    --backend-store-uri $${MLFLOW_BACKEND} \
-                    --default-artifact-root $${MLFLOW_ARTIFACT_ROOT} \
-                    --host 0.0.0.0 \
-                    --port $${MLFLOW_PORT}
+                    --backend-store-uri ${MLFLOW_BACKEND} \
+                    --default-artifact-root ${MLFLOW_ARTIFACT_ROOT} \
+                    --host 0.0.0.0 --port ${MLFLOW_PORT}
                   Restart=on-failure
 
                   [Install]
                   WantedBy=multi-user.target
-                  EOF
-                - systemctl daemon-reload
-                - systemctl enable mlflow
+                  UNIT
+
+                  # ---------- stub env file ----------
+                  touch /etc/mlflow.env
+                  chmod 600 /etc/mlflow.env
+
+                  systemctl daemon-reload
+                  systemctl enable mlflow
   YAML
 }
 
