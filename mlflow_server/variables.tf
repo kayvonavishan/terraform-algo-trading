@@ -29,7 +29,7 @@ variable "allowed_cidr_blocks" {
 
 variable "mlflow_version" {
   type    = string
-  default = "2.12.2"
+  default = "3.1.1"
 }
 
 variable "instance_type" {
