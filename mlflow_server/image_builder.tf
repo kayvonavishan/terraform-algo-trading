@@ -24,12 +24,23 @@ resource "aws_imagebuilder_component" "mlflow_install" {
             inputs:
               commands:
                 - |
-                  # ---------------- OS deps ----------------
+                  ######## 1. OS deps + Python 3.12 via PPA ########
                   apt-get update -y
-                  apt-get install -y python3-pip postgresql-client
-                  pip3 install "mlflow[extras]==${var.mlflow_version}" boto3 psycopg2-binary
+                  DEBIAN_FRONTEND=noninteractive \
+                  apt-get install -y software-properties-common
+                  add-apt-repository -y ppa:deadsnakes/ppa
+                  apt-get update -y
+                  apt-get install -y python3.12 python3.12-venv python3.12-distutils \
+                                         python3.12-dev build-essential postgresql-client
 
-                  # ---------------- systemd unit ----------------
+                  # Make 3.12 the default “python3” *for this image* (optional)
+                  update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 20
+                  curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12 -
+
+                  ######## 2. Python-specific packages ########
+                  pip3.12 install "mlflow[extras]==${var.mlflow_version}" boto3 psycopg2-binary
+
+                  ######## 3. Write & enable the systemd unit (unchanged) ########
                   cat >/etc/systemd/system/mlflow.service <<'UNIT'
                   [Unit]
                   Description=MLflow Tracking Server
@@ -39,7 +50,7 @@ resource "aws_imagebuilder_component" "mlflow_install" {
                   [Service]
                   Type=simple
                   EnvironmentFile=-/etc/mlflow.env
-                  ExecStart=/usr/local/bin/mlflow server \
+                  ExecStart=/usr/bin/python3.12 -m mlflow server \
                     --backend-store-uri $${MLFLOW_BACKEND} \
                     --default-artifact-root $${MLFLOW_ARTIFACT_ROOT} \
                     --host 0.0.0.0 --port $${MLFLOW_PORT}
@@ -49,11 +60,8 @@ resource "aws_imagebuilder_component" "mlflow_install" {
                   WantedBy=multi-user.target
                   UNIT
 
-                  # ---------------- stub env + enable ----------------
-                  touch /etc/mlflow.env
-                  chmod 600 /etc/mlflow.env
-                  systemctl daemon-reload
-                  systemctl enable mlflow
+                  touch /etc/mlflow.env && chmod 600 /etc/mlflow.env
+                  systemctl daemon-reload && systemctl enable mlflow
   YAML
 }
 

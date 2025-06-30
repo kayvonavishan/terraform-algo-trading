@@ -34,7 +34,8 @@ resource "aws_instance" "mlflow" {
 
   user_data = templatefile("${path.module}/templates/mlflow_user_data.sh.tpl", {
     db_endpoint  = aws_rds_cluster.mlflow.endpoint,
-    db_password  = random_password.db.result,
+    #db_password  = random_password.db.result,
+    db_password  = "mypw123321"
     bucket_name  = aws_s3_bucket.artifacts.bucket,
     mlflow_port  = var.mlflow_port
   })
