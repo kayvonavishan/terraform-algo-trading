@@ -29,7 +29,8 @@ resource "aws_imagebuilder_component" "mlflow_install" {
                 - pip3 install "mlflow[extras]==${var.mlflow_version}" boto3 psycopg2-binary
 
                 # ————— systemd unit —————
-                - |                cat >/etc/systemd/system/mlflow.service <<'UNIT'
+                - |                
+                cat >/etc/systemd/system/mlflow.service <<'UNIT'
                 [Unit]
                 Description=MLflow Tracking Server
                 Wants=network-online.target
