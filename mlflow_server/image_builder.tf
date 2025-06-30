@@ -19,44 +19,41 @@ resource "aws_imagebuilder_component" "mlflow_install" {
     phases:
       - name: build
         steps:
-          - name: Install
+          - name: install-and-configure
             action: ExecuteBash
             inputs:
               commands:
-                # ————— basic OS deps —————
-                - apt-get update -y
-                - apt-get install -y python3-pip postgresql-client
-                - pip3 install "mlflow[extras]==${var.mlflow_version}" boto3 psycopg2-binary
+                - |
+                  # ---------------- OS deps ----------------
+                  apt-get update -y
+                  apt-get install -y python3-pip postgresql-client
+                  pip3 install "mlflow[extras]==${var.mlflow_version}" boto3 psycopg2-binary
 
-                # ————— systemd unit —————
-                - |                
-                cat >/etc/systemd/system/mlflow.service <<'UNIT'
-                [Unit]
-                Description=MLflow Tracking Server
-                Wants=network-online.target
-                After=network-online.target
+                  # ---------------- systemd unit ----------------
+                  cat >/etc/systemd/system/mlflow.service <<'UNIT'
+                  [Unit]
+                  Description=MLflow Tracking Server
+                  Wants=network-online.target
+                  After=network-online.target
 
-                [Service]
-                Type=simple
-                EnvironmentFile=-/etc/mlflow.env
-                ExecStart=/usr/local/bin/mlflow server \
-                  --backend-store-uri $${MLFLOW_BACKEND} \
-                  --default-artifact-root $${MLFLOW_ARTIFACT_ROOT} \
-                  --host 0.0.0.0 --port $${MLFLOW_PORT}
-                Restart=on-failure
+                  [Service]
+                  Type=simple
+                  EnvironmentFile=-/etc/mlflow.env
+                  ExecStart=/usr/local/bin/mlflow server \
+                    --backend-store-uri $${MLFLOW_BACKEND} \
+                    --default-artifact-root $${MLFLOW_ARTIFACT_ROOT} \
+                    --host 0.0.0.0 --port $${MLFLOW_PORT}
+                  Restart=on-failure
 
-                [Install]
-                WantedBy=multi-user.target
-                UNIT
+                  [Install]
+                  WantedBy=multi-user.target
+                  UNIT
 
-
-                # ————— stub env file so the unit never fails if cloud-init is slow —————
-                - touch /etc/mlflow.env
-                - chmod 600 /etc/mlflow.env
-
-                # ————— enable at boot —————
-                - systemctl daemon-reload
-                - systemctl enable mlflow
+                  # ---------------- stub env + enable ----------------
+                  touch /etc/mlflow.env
+                  chmod 600 /etc/mlflow.env
+                  systemctl daemon-reload
+                  systemctl enable mlflow
   YAML
 }
 
