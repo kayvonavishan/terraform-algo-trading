@@ -22,7 +22,8 @@ resource "aws_imagebuilder_component" "mlflow_install" {
           - name: Install
             action: ExecuteBash
             inputs:
-              commands:
+              commands: |
+                %{ raw }
                 - apt-get update -y
                 - apt-get install -y python3-pip postgresql-client
                 - pip3 install mlflow[extras]==${var.mlflow_version} boto3 psycopg2-binary
@@ -46,6 +47,7 @@ resource "aws_imagebuilder_component" "mlflow_install" {
                   [Install]
                   WantedBy=multi-user.target
                   UNIT
+                  %{ endraw }
 
                   # ---------- stub env file ----------
                   touch /etc/mlflow.env
