@@ -24,23 +24,30 @@ resource "aws_imagebuilder_component" "mlflow_install" {
             inputs:
               commands:
                 - |
-                  ######## 1. OS deps + Python 3.12 via PPA ########
-                  apt-get update -y
-                  DEBIAN_FRONTEND=noninteractive \
-                  apt-get install -y software-properties-common
-                  add-apt-repository -y ppa:deadsnakes/ppa
-                  apt-get update -y
-                  apt-get install -y python3.12 python3.12-venv python3.12-distutils \
-                                         python3.12-dev build-essential postgresql-client
+                  set -euo pipefail
 
-                  # Make 3.12 the default “python3” *for this image* (optional)
-                  update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 20
-                  curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12 -
+                  # --- build prerequisites -------------------------------------------------
+                  apt-get update -y
+                  apt-get install -y build-essential wget libssl-dev zlib1g-dev \
+                                    libbz2-dev libreadline-dev libsqlite3-dev \
+                                    libffi-dev liblzma-dev tk-dev uuid-dev
 
-                  ######## 2. Python-specific packages ########
+                  # --- download & compile Python 3.12.x ------------------------------------
+                  cd /usr/src
+                  curl -O https://www.python.org/ftp/python/3.12.4/Python-3.12.4.tgz
+                  tar -xf Python-3.12.4.tgz && cd Python-3.12.4
+                  ./configure --enable-optimizations --prefix=/usr/local/python-3.12
+                  make -j"$(nproc)"
+                  make altinstall
+
+                  ln -sf /usr/local/python-3.12/bin/python3.12 /usr/local/bin/python3.12
+                  ln -sf /usr/local/python-3.12/bin/pip3.12    /usr/local/bin/pip3.12
+
+                  # --- python packages ------------------------------------------------------
+                  python3.12 -m pip install --upgrade pip
                   pip3.12 install "mlflow[extras]==${var.mlflow_version}" boto3 psycopg2-binary
 
-                  ######## 3. Write & enable the systemd unit (unchanged) ########
+                  # --- MLflow systemd unit (same as before) --------------------------------
                   cat >/etc/systemd/system/mlflow.service <<'UNIT'
                   [Unit]
                   Description=MLflow Tracking Server
@@ -50,7 +57,7 @@ resource "aws_imagebuilder_component" "mlflow_install" {
                   [Service]
                   Type=simple
                   EnvironmentFile=-/etc/mlflow.env
-                  ExecStart=/usr/bin/python3.12 -m mlflow server \
+                  ExecStart=/usr/bin/env python3.12 -m mlflow server \
                     --backend-store-uri $${MLFLOW_BACKEND} \
                     --default-artifact-root $${MLFLOW_ARTIFACT_ROOT} \
                     --host 0.0.0.0 --port $${MLFLOW_PORT}
