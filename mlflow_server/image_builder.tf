@@ -15,7 +15,6 @@ resource "aws_imagebuilder_component" "mlflow_install" {
 
   data = <<-YAML
     name: mlflow-install
-    description: Install MLflow ${var.mlflow_version}
     schemaVersion: 1.0
     phases:
       - name: build
@@ -31,7 +30,8 @@ resource "aws_imagebuilder_component" "mlflow_install" {
                   cat <<'EOF' > /etc/systemd/system/mlflow.service
                   [Unit]
                   Description=MLflow Tracking Server
-                  After=network.target
+                  Wants=network-online.target
+                  After=network-online.target
 
                   [Service]
                   Type=simple
@@ -40,7 +40,7 @@ resource "aws_imagebuilder_component" "mlflow_install" {
                     --backend-store-uri $${MLFLOW_BACKEND} \
                     --default-artifact-root $${MLFLOW_ARTIFACT_ROOT} \
                     --host 0.0.0.0 \
-                    --port 5000
+                    --port $${MLFLOW_PORT}
                   Restart=on-failure
 
                   [Install]
@@ -48,7 +48,7 @@ resource "aws_imagebuilder_component" "mlflow_install" {
                   EOF
                 - systemctl daemon-reload
                 - systemctl enable mlflow
-    YAML
+  YAML
 }
 
 resource "aws_imagebuilder_image_recipe" "mlflow" {
