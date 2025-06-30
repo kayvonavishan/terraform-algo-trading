@@ -34,7 +34,7 @@ variable "mlflow_version" {
 
 variable "instance_type" {
   type    = string
-  default = "t3.micro"
+  default = "t3.small"
 }
 
 variable "mlflow_port" {
