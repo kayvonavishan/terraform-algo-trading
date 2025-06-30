@@ -22,13 +22,14 @@ resource "aws_imagebuilder_component" "mlflow_install" {
           - name: Install
             action: ExecuteBash
             inputs:
-              commands: |
-                %{ raw }
+              commands:
+                # ————— basic OS deps —————
                 - apt-get update -y
                 - apt-get install -y python3-pip postgresql-client
-                - pip3 install mlflow[extras]==${var.mlflow_version} boto3 psycopg2-binary
+                - pip3 install "mlflow[extras]==${var.mlflow_version}" boto3 psycopg2-binary
+
+                # ————— systemd unit —————
                 - |
-                  # ---------- unit file ----------
                   cat >/etc/systemd/system/mlflow.service <<'UNIT'
                   [Unit]
                   Description=MLflow Tracking Server
@@ -37,24 +38,24 @@ resource "aws_imagebuilder_component" "mlflow_install" {
 
                   [Service]
                   Type=simple
-                  EnvironmentFile=-/etc/mlflow.env      # the “-” makes it optional
+                  EnvironmentFile=-/etc/mlflow.env        # “-” → optional
                   ExecStart=/usr/local/bin/mlflow server \
-                    --backend-store-uri ${MLFLOW_BACKEND} \
-                    --default-artifact-root ${MLFLOW_ARTIFACT_ROOT} \
-                    --host 0.0.0.0 --port ${MLFLOW_PORT}
+                    --backend-store-uri $MLFLOW_BACKEND \
+                    --default-artifact-root $MLFLOW_ARTIFACT_ROOT \
+                    --host 0.0.0.0 --port $MLFLOW_PORT
                   Restart=on-failure
 
                   [Install]
                   WantedBy=multi-user.target
                   UNIT
-                  %{ endraw }
 
-                  # ---------- stub env file ----------
-                  touch /etc/mlflow.env
-                  chmod 600 /etc/mlflow.env
+                # ————— stub env file so the unit never fails if cloud-init is slow —————
+                - touch /etc/mlflow.env
+                - chmod 600 /etc/mlflow.env
 
-                  systemctl daemon-reload
-                  systemctl enable mlflow
+                # ————— enable at boot —————
+                - systemctl daemon-reload
+                - systemctl enable mlflow
   YAML
 }
 
