@@ -68,3 +68,37 @@ resource "aws_rds_cluster_instance" "writer" {
   publicly_accessible = true
   db_subnet_group_name = aws_db_subnet_group.mlflow_public.name
 }
+
+
+
+##################
+#setup optuna db
+
+// 1️⃣ In your root module, declare the PostgreSQL provider
+terraform {
+  required_providers {
+    postgresql = {
+      source  = "cyrilgdn/postgresql"
+      version = "~> 1.13.0"
+    }
+  }
+}
+
+// 2️⃣ Configure the provider to point at your Aurora cluster
+provider "postgresql" {
+  host            = aws_rds_cluster.mlflow.endpoint      // cluster endpoint attr
+  port            = aws_rds_cluster.mlflow.port          // usually 5432
+  database        = aws_rds_cluster.mlflow.database_name // "mlflow"
+  username        = aws_rds_cluster.mlflow.master_username
+  password        = aws_rds_cluster.mlflow.master_password
+  sslmode         = "require"
+  
+  // Wait until the cluster is available
+  depends_on      = [ aws_rds_cluster.mlflow ]
+}
+
+// 3️⃣ Create a dedicated Optuna database
+resource "postgresql_database" "optuna" {
+  name  = "optuna"
+  owner = aws_rds_cluster.mlflow.master_username
+}
