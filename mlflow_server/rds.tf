@@ -82,13 +82,11 @@ provider "postgresql" {
   username        = aws_rds_cluster.mlflow.master_username
   password        = aws_rds_cluster.mlflow.master_password
   sslmode         = "require"
-  
-  // Wait until the cluster is available
-  depends_on      = [ aws_rds_cluster.mlflow ]
 }
 
 // 3️⃣ Create a dedicated Optuna database
 resource "postgresql_database" "optuna" {
   name  = "optuna"
   owner = aws_rds_cluster.mlflow.master_username
+  depends_on = [ aws_rds_cluster.mlflow ]
 }
