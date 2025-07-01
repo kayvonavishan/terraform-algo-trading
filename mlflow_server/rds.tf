@@ -74,16 +74,6 @@ resource "aws_rds_cluster_instance" "writer" {
 ##################
 #setup optuna db
 
-// 1️⃣ In your root module, declare the PostgreSQL provider
-terraform {
-  required_providers {
-    postgresql = {
-      source  = "cyrilgdn/postgresql"
-      version = "~> 1.13.0"
-    }
-  }
-}
-
 // 2️⃣ Configure the provider to point at your Aurora cluster
 provider "postgresql" {
   host            = aws_rds_cluster.mlflow.endpoint      // cluster endpoint attr
