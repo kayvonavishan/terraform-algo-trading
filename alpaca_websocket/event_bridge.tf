@@ -40,7 +40,7 @@ resource "aws_iam_role_policy" "scheduler_invoke_lambda" {
 
 resource "aws_scheduler_schedule" "alpaca_websocket_daily_9am_est" {
   name                         = "alpaca-websocket-lambda-daily-9am-est"
-  schedule_expression          = "cron(0 9 * * ? *)"
+  schedule_expression          = "cron(45 8 ? * MON-FRI *)"
   schedule_expression_timezone = "America/New_York"
 
   flexible_time_window {
