@@ -30,7 +30,7 @@ if [ ! -d "algo-modeling-v2" ]; then
   sudo chown -R ec2-user:ec2-user /home/ec2-user/algo-modeling-v2
   cd algo-modeling-v2
   sudo -u ec2-user git fetch > /home/ec2-user/live_trader.log
-  sudo -u ec2-user git checkout feature/deployment-final-v2 >> /home/ec2-user/live_trader.log
+  sudo -u ec2-user git checkout feature/wire-streaming-val >> /home/ec2-user/live_trader.log
   sudo -u ec2-user git pull >> /home/ec2-user/live_trader.log
 else
   echo "Repository exists. Pulling latest changes..."
@@ -40,7 +40,7 @@ else
   sudo chown -R ec2-user:ec2-user /home/ec2-user/algo-modeling-v2
   cd algo-modeling-v2
   sudo -u ec2-user git fetch >> /home/ec2-user/live_trader.log
-  sudo -u ec2-user git checkout feature/deployment-final-v2 >> /home/ec2-user/live_trader.log
+  sudo -u ec2-user git checkout feature/wire-streaming-val >> /home/ec2-user/live_trader.log
   sudo -u ec2-user git pull >> /home/ec2-user/live_trader.log
 fi
 
