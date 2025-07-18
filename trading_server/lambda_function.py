@@ -37,11 +37,16 @@ def lambda_handler(event, context):
     all_trade = ec2.describe_instances(Filters=[trade_tag]).get('Reservations', [])
     if not all_trade:
         raise Exception("No EC2 found with tag Name=trading-server*")
-    trade_insts = [i for r in all_trade for i in r['Instances']]
+    trade_insts = [i
+               for r in all_trade
+               for i in r['Instances']
+               if i['State']['Name'] not in ('terminated','shutting-down')]
     trade_ids   = [i['InstanceId'] for i in trade_insts]
 
     # ─── 5) START ANY TRADING SERVERS NOT RUNNING ─────────────────────────
-    to_start = [i['InstanceId'] for i in trade_insts if i['State']['Name'] != 'running']
+    to_start = [i['InstanceId']
+            for i in trade_insts
+            if i['State']['Name'] == 'stopped']
     if to_start:
         ec2.start_instances(InstanceIds=to_start)
         waiter = ec2.get_waiter('instance_running')
