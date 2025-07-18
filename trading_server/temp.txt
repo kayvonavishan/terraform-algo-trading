@@ -138,6 +138,7 @@ sudo /usr/bin/python3 -m pip uninstall \
 /usr/local/bin/python3.12 -m pip install psutil
 /usr/local/bin/python3.12 -m pip install seaborn
 /usr/local/bin/python3.12 -m pip install boto3
+/usr/local/bin/python3.12 -m pip install "httpx>=0.27,<1.0"
 
 /usr/local/bin/python3.12 -m pip install TA-Lib
 
