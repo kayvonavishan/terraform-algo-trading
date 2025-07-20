@@ -1,0 +1,1 @@
+# AWS provider configuration is expected to be provided by the calling environment
