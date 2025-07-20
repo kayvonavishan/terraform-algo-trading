@@ -25,6 +25,11 @@ output "matching_prefixes" {
   value       = local.matching_prefixes
 }
 
+output "split_keys" {
+  description = "Map of model information extracted from file prefixes"
+  value       = local.split_keys
+}
+
 output "model_info_attrs" {
   description = "Map of model information extracted from file prefixes"
   value       = local.model_info_attrs
