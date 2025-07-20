@@ -81,17 +81,14 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
-# Role for eventbridge chaining
-# Look up your TradingServerLambda’s ARN
-data "aws_lambda_function" "trading_server_lambda" {
-  function_name = "TradingServerLambda_${var.environment}"
-}
+# Get current AWS account ID for constructing ARNs
+data "aws_caller_identity" "current" {}
 
 # Allow the Alpaca role to call InvokeFunction on TradingServerLambda
+# Using constructed ARN to avoid circular dependency
 resource "aws_iam_role_policy" "allow_alpaca_invoke_trading" {
   name = "AllowAlpacaInvokeTradingServer_${var.environment}"
   
-  # <-- this is the same role you created above
   role = aws_iam_role.lambda_role.name
 
   policy = jsonencode({
@@ -100,7 +97,7 @@ resource "aws_iam_role_policy" "allow_alpaca_invoke_trading" {
       {
         Effect   = "Allow",
         Action   = "lambda:InvokeFunction",
-        Resource = data.aws_lambda_function.trading_server_lambda.arn
+        Resource = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:TradingServerLambda_${var.environment}"
       }
     ]
   })
