@@ -1,4 +1,4 @@
-# QA Environment Configuration
+# Development Environment Configuration
 
 terraform {
   required_providers {
@@ -14,7 +14,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Alpaca WebSocket Module
+# Alpaca WebSocket Module (no EventBridge scheduling)
 module "alpaca_websocket" {
   source = "../../modules/alpaca_websocket"
   
@@ -24,11 +24,11 @@ module "alpaca_websocket" {
   instance_type     = var.instance_types.websocket_server
   key_name          = var.key_name
   ami_name_filter   = var.ami_name_filters.websocket_server
-  enable_eventbridge = true
+  enable_eventbridge = false  # Disable EventBridge for dev
   git_branch         = var.git_branch
 }
 
-# Trading Server Module
+# Trading Server Module (no EventBridge chaining)
 module "trading_server" {
   source = "../../modules/trading_server"
   
@@ -39,17 +39,11 @@ module "trading_server" {
   key_name                = var.key_name
   ami_name_filter         = var.ami_name_filters.trading_server
   websocket_instance_name = "alpaca-websocket-ingest-${var.environment}"
-  enable_eventbridge      = true
+  enable_eventbridge      = false  # Disable EventBridge for dev
   git_branch              = var.git_branch
 }
 
-# Trading Server Shutdown Module
-module "trading_server_shutdown" {
-  source = "../../modules/trading_server_shutdown"
-  
-  aws_region  = var.aws_region
-  environment = var.environment
-}
+# Note: trading_server_shutdown module is intentionally omitted for dev environment
 
 # Outputs
 output "websocket_instance_id" {

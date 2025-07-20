@@ -32,3 +32,15 @@ variable "ami_name_filter" {
   type        = string
   default     = "alpaca-websocket*"
 }
+
+variable "enable_eventbridge" {
+  description = "Enable EventBridge scheduling for Lambda function"
+  type        = bool
+  default     = true
+}
+
+variable "git_branch" {
+  description = "Git branch to checkout for algo-modeling-v2 repository"
+  type        = string
+  default     = "feature/wire-streaming-val"
+}

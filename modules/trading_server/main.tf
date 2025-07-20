@@ -196,6 +196,7 @@ resource "aws_instance" "model_instance" {
     echo "model_type=${each.value.model_type}" >> $${CONFIG_FILE}
     echo "symbol=${each.value.symbol}" >> $${CONFIG_FILE}
     echo "model_number=${each.value.model_number}" >> $${CONFIG_FILE}
+    echo "git_branch=${var.git_branch}" >> $${CONFIG_FILE}
 
     # Optional: Print to the console for debugging/logging purposes.
     echo "Deployment config written to $${CONFIG_FILE}"

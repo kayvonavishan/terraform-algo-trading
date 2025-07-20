@@ -1,4 +1,4 @@
-# QA Environment Variables
+# Development Environment Variables
 
 variable "aws_region" {
   description = "AWS region to deploy in"
@@ -9,13 +9,13 @@ variable "aws_region" {
 variable "environment" {
   description = "Environment name"
   type        = string
-  default     = "qa"
+  default     = "dev"
 }
 
 variable "bucket_name" {
   description = "The S3 bucket name containing your model structure"
   type        = string
-  default     = "algo-model-deploy"
+  default     = "algo-model-deploy-dev"
 }
 
 variable "key_name" {
@@ -31,8 +31,8 @@ variable "instance_types" {
     trading_server   = string
   })
   default = {
-    websocket_server = "t2.small"
-    trading_server   = "t2.small"
+    websocket_server = "t2.micro"
+    trading_server   = "t2.micro"
   }
 }
 
@@ -51,5 +51,5 @@ variable "ami_name_filters" {
 variable "git_branch" {
   description = "Git branch to checkout for algo-modeling-v2 repository"
   type        = string
-  default     = "feature/wire-streaming-val"
+  default     = "main"
 }
