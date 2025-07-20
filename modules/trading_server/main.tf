@@ -6,10 +6,6 @@ data "aws_s3_objects" "models" {
   prefix = "models/"
 }
 
-output "s3_model_object_keys" {
-  description = "List of S3 object keys under the models/ prefix"
-  value       = data.aws_s3_objects.models.keys
-}
 
 # Data source to find the most recent AMI with the name 'trading-server'
 data "aws_ami" "trading_server" {
@@ -55,22 +51,6 @@ locals {
   }
 }
 
-output "matching_prefixes" {
-  description = "Unique S3 prefixes matching the outer/inner pattern"
-  value       = local.matching_prefixes
-}
-
-
-output "split_keys" {
-  description = "Map of model information extracted from file prefixes."
-  value       = local.split_keys
-}
-
-
-output "model_info_attrs" {
-  description = "Map of model information extracted from file prefixes."
-  value       = local.model_info_attrs
-}
 
 
 ###############################
