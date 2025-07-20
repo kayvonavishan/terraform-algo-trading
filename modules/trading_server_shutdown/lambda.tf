@@ -4,8 +4,8 @@
 
 data "archive_file" "shutdown_lambda_package" {
   type        = "zip"
-  source_dir  = "."
-  output_path = "./shutdown-deployment-package.zip"
+  source_dir  = "${path.module}"
+  output_path = "${path.module}/shutdown-deployment-package.zip"
 
   excludes = [
     "*.tf",

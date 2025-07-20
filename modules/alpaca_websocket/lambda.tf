@@ -106,13 +106,13 @@ resource "aws_iam_role_policy" "allow_alpaca_invoke_trading" {
 
 data "archive_file" "lambda_package" {
   type        = "zip"
-  source_dir  = "."     # ✔ zips the TF folder + all your code files
-  output_path = "./deployment-package.zip"
+  source_dir  = "${path.module}"
+  output_path = "${path.module}/deployment-package.zip"
 
   # toss out anything that isn't runtime code
   excludes = [
     "*.tf",            # your Terraform files
-    ".terraform/*",    # Terraform’s state/cache dir
+    ".terraform/*",    # Terraform's state/cache dir
   ]
 }
 
