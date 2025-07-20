@@ -38,4 +38,10 @@ variable "websocket_instance_name" {
   default     = "alpaca-websocket-ingest"
 }
 
+variable "enable_eventbridge" {
+  description = "Enable EventBridge infrastructure for Lambda function chaining"
+  type        = bool
+  default     = true
+}
+
 

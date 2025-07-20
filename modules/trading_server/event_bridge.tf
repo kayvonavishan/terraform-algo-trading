@@ -1,8 +1,10 @@
 ###############################################################################
-# (A) Allow AlpacaWebsocketLambda’s execution role to invoke TradingServerLambda
+# (A) Allow AlpacaWebsocketLambda's execution role to invoke TradingServerLambda (conditional)
 ###############################################################################
 
 resource "aws_iam_role_policy" "alpaca_websocket_invoke_trading_policy" {
+  count = var.enable_eventbridge ? 1 : 0
+  
   name = "alpaca-websocket-invoke-trading-${var.environment}"
   role = aws_iam_role.lambda_role.id   # this is the role for AlpacaWebsocketLambda
 
@@ -20,10 +22,12 @@ resource "aws_iam_role_policy" "alpaca_websocket_invoke_trading_policy" {
 
 #################################################################
 # (B) Chain: when AlpacaWebsocketLambda async invocation succeeds
-#      → invoke TradingServerLambda
+#      → invoke TradingServerLambda (conditional)
 #################################################################
 
 resource "aws_lambda_function_event_invoke_config" "chain_alpaca_to_trading" {
+  count = var.enable_eventbridge ? 1 : 0
+  
   function_name = "AlpacaWebsocketLambda_${var.environment}"
 
   # optional: keep failed events for 1h, never retry

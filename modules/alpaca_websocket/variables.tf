@@ -32,3 +32,9 @@ variable "ami_name_filter" {
   type        = string
   default     = "alpaca-websocket*"
 }
+
+variable "enable_eventbridge" {
+  description = "Enable EventBridge scheduling for Lambda function"
+  type        = bool
+  default     = true
+}

@@ -24,6 +24,7 @@ module "alpaca_websocket" {
   instance_type     = var.instance_types.websocket_server
   key_name          = var.key_name
   ami_name_filter   = var.ami_name_filters.websocket_server
+  enable_eventbridge = true
 }
 
 # Trading Server Module
@@ -37,6 +38,7 @@ module "trading_server" {
   key_name                = var.key_name
   ami_name_filter         = var.ami_name_filters.trading_server
   websocket_instance_name = "alpaca-websocket-ingest-${var.environment}"
+  enable_eventbridge      = true
 }
 
 # Trading Server Shutdown Module
