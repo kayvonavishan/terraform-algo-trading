@@ -3,7 +3,7 @@
 ###############################################################################
 
 resource "aws_iam_role_policy" "alpaca_websocket_invoke_trading_policy" {
-  name = "alpaca-websocket-invoke-trading"
+  name = "alpaca-websocket-invoke-trading-${var.environment}"
   role = aws_iam_role.lambda_role.id   # this is the role for AlpacaWebsocketLambda
 
   policy = jsonencode({
@@ -24,7 +24,7 @@ resource "aws_iam_role_policy" "alpaca_websocket_invoke_trading_policy" {
 #################################################################
 
 data "aws_lambda_function" "alpaca_websocket_lambda" {
-  function_name = "AlpacaWebsocketLambda"
+  function_name = "AlpacaWebsocketLambda_${var.environment}"
 }
 
 resource "aws_lambda_function_event_invoke_config" "chain_alpaca_to_trading" {

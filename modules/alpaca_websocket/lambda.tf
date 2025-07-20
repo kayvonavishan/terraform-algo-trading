@@ -16,12 +16,12 @@ data "aws_iam_policy_document" "lambda_assume_role_policy" {
 
 # Create an IAM role for the Lambda function
 resource "aws_iam_role" "lambda_role" {
-  name               = "alpaca_websocket_lambda_role"
+  name               = "alpaca_websocket_lambda_role_${var.environment}"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 }
 
 resource "aws_iam_policy" "lambda_policy" {
-  name        = "alpaca_websocket_lambda_policy"
+  name        = "alpaca_websocket_lambda_policy_${var.environment}"
   description = "Allow Lambda function to access Secrets Manager, CloudWatch Logs, describe EC2 instances, interact with SSM, and manage network interfaces."
   policy      = <<EOF
 {
@@ -84,12 +84,12 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 # Role for eventbridge chaining
 # Look up your TradingServerLambda’s ARN
 data "aws_lambda_function" "trading_server_lambda" {
-  function_name = "TradingServerLambda"
+  function_name = "TradingServerLambda_${var.environment}"
 }
 
 # Allow the Alpaca role to call InvokeFunction on TradingServerLambda
 resource "aws_iam_role_policy" "allow_alpaca_invoke_trading" {
-  name = "AllowAlpacaInvokeTradingServer"
+  name = "AllowAlpacaInvokeTradingServer_${var.environment}"
   
   # <-- this is the same role you created above
   role = aws_iam_role.lambda_role.name
@@ -124,7 +124,7 @@ data "archive_file" "lambda_package" {
 
 # Define the Lambda function resource
 resource "aws_lambda_function" "alpaca_websocket_lambda" {
-  function_name = "AlpacaWebsocketLambda"
+  function_name = "AlpacaWebsocketLambda_${var.environment}"
   role          = aws_iam_role.lambda_role.arn
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.8"  # Change to your desired Python runtime version
