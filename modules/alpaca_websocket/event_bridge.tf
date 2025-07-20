@@ -14,12 +14,12 @@ data "aws_iam_policy_document" "scheduler_assume_role" {
 }
 
 resource "aws_iam_role" "scheduler_exec_role" {
-  name               = "eventbridge-scheduler-invoke-lambda"
+  name               = "eventbridge-scheduler-invoke-lambda-${var.environment}"
   assume_role_policy = data.aws_iam_policy_document.scheduler_assume_role.json
 }
 
 resource "aws_iam_role_policy" "scheduler_invoke_lambda" {
-  name = "scheduler-invoke-lambda"
+  name = "scheduler-invoke-lambda-${var.environment}"
   role = aws_iam_role.scheduler_exec_role.id
 
   policy = jsonencode({

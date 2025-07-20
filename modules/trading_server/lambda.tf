@@ -16,12 +16,12 @@ data "aws_iam_policy_document" "lambda_assume_role_policy" {
 
 # Create an IAM role for the Lambda function
 resource "aws_iam_role" "lambda_role" {
-  name               = "trading_server_lambda_role"
+  name               = "trading_server_lambda_role_${var.environment}"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 }
 
 resource "aws_iam_policy" "lambda_policy" {
-  name        = "trading_server_lambda_policy"
+  name        = "trading_server_lambda_policy_${var.environment}"
   description = "Allow Lambda function to access Secrets Manager, CloudWatch Logs, describe EC2 instances, interact with SSM, and manage network interfaces."
   policy      = <<EOF
 {
@@ -126,7 +126,7 @@ data "archive_file" "lambda_package" {
 
 # Define the Lambda function resource
 resource "aws_lambda_function" "trading_server_lambda" {
-  function_name = "TradingServerLambda"
+  function_name = "TradingServerLambda_${var.environment}"
   role          = aws_iam_role.lambda_role.arn
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.8"  # Change to your desired Python runtime version
