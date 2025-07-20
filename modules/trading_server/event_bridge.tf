@@ -23,12 +23,8 @@ resource "aws_iam_role_policy" "alpaca_websocket_invoke_trading_policy" {
 #      → invoke TradingServerLambda
 #################################################################
 
-data "aws_lambda_function" "alpaca_websocket_lambda" {
-  function_name = "AlpacaWebsocketLambda_${var.environment}"
-}
-
 resource "aws_lambda_function_event_invoke_config" "chain_alpaca_to_trading" {
-  function_name = data.aws_lambda_function.alpaca_websocket_lambda.function_name
+  function_name = "AlpacaWebsocketLambda_${var.environment}"
 
   # optional: keep failed events for 1h, never retry
   maximum_event_age_in_seconds = 3600
