@@ -81,9 +81,6 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
-# Get current AWS account ID for constructing ARNs
-data "aws_caller_identity" "current" {}
-
 # Allow the Alpaca role to call InvokeFunction on TradingServerLambda
 # Using constructed ARN to avoid circular dependency
 resource "aws_iam_role_policy" "allow_alpaca_invoke_trading" {
