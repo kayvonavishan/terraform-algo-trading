@@ -44,8 +44,10 @@ def lambda_handler(event, context):
     trade_insts = [i
                for r in all_trade
                for i in r['Instances']
-               if i['State']['Name'] not in ('terminated','shutting-down')]
-    trade_ids   = [i['InstanceId'] for i in trade_insts]
+               if i['State']['Name'] not in ('terminated','shutting-down','terminating')]
+    
+    if not trade_insts:
+        raise Exception(f"No valid (non-terminated) EC2 instances found with tag Name={trading_server_pattern}")
 
     # ─── 5) START ANY TRADING SERVERS NOT RUNNING ─────────────────────────
     to_start = [i['InstanceId']
@@ -55,7 +57,19 @@ def lambda_handler(event, context):
         ec2.start_instances(InstanceIds=to_start)
         waiter = ec2.get_waiter('instance_running')
         waiter.wait(InstanceIds=to_start, WaiterConfig={'Delay':5, 'MaxAttempts':12})
-        time.sleep(5)
+        time.sleep(10)  # Extra time for SSM agent to be ready
+
+    # ─── 5B) ONLY USE RUNNING INSTANCES FOR SSM COMMANDS ─────────────────
+    # Re-describe instances to get current state after potential starts
+    all_trade_updated = ec2.describe_instances(Filters=[trade_tag]).get('Reservations', [])
+    running_insts = [i
+                    for r in all_trade_updated
+                    for i in r['Instances']
+                    if i['State']['Name'] == 'running']
+    trade_ids = [i['InstanceId'] for i in running_insts]
+    
+    if not trade_ids:
+        raise Exception("No running instances available for SSM commands")
 
     # ─── 6) LOAD YOUR SCRIPT & INJECT NATS IP ─────────────────────────────
     script_path = os.path.join(os.getcwd(), 'run.sh')
