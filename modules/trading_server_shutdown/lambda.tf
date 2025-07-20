@@ -82,7 +82,6 @@ resource "aws_lambda_function" "shutdown_lambda" {
   environment {
     variables = {
       ENVIRONMENT = var.environment
-      AWS_REGION  = var.aws_region
     }
   }
 
