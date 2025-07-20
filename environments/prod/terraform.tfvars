@@ -16,3 +16,6 @@ ami_name_filters = {
   websocket_server = "alpaca-websocket*"
   trading_server   = "trading-server*"
 }
+
+# Git branch for production - use main branch for stable production code
+git_branch = "main"

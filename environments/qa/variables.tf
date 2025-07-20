@@ -47,3 +47,9 @@ variable "ami_name_filters" {
     trading_server   = "trading-server*"
   }
 }
+
+variable "git_branch" {
+  description = "Git branch to checkout for algo-modeling-v2 repository"
+  type        = string
+  default     = "feature/wire-streaming-val"
+}

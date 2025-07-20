@@ -16,3 +16,6 @@ ami_name_filters = {
   websocket_server = "alpaca-websocket*"
   trading_server   = "trading-server*"
 }
+
+# Git branch for QA testing - use feature branch for testing new features
+git_branch = "feature/wire-streaming-val"

@@ -187,6 +187,7 @@ resource "aws_instance" "alpaca_instance" {
 
     # Write or overwrite the configuration file with the deployment information.
     echo "bucket_name=${var.bucket_name}" > $${CONFIG_FILE}
+    echo "git_branch=${var.git_branch}" >> $${CONFIG_FILE}
 
     # Optional: Print to the console for debugging/logging purposes.
     echo "Deployment config written to $${CONFIG_FILE}"

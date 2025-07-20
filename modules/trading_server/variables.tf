@@ -44,4 +44,10 @@ variable "enable_eventbridge" {
   default     = true
 }
 
+variable "git_branch" {
+  description = "Git branch to checkout for algo-modeling-v2 repository"
+  type        = string
+  default     = "feature/wire-streaming-val"
+}
+
 
