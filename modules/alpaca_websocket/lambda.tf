@@ -133,6 +133,7 @@ resource "aws_lambda_function" "alpaca_websocket_lambda" {
   environment {
     variables = {
       GITHUB_SECRET_ID = "github/ssh-key"
+      ENVIRONMENT     = var.environment
       # Optionally override AWS_REGION if needed:
       # AWS_REGION = "us-east-1"
     }

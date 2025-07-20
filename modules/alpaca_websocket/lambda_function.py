@@ -5,12 +5,15 @@ import json
 
 def lambda_handler(event, context):
     region_name = os.environ.get("AWS_REGION", "us-east-1")
+    environment = os.environ.get("ENVIRONMENT", "qa")
+    instance_name = f"alpaca-websocket-ingest-{environment}"
+    
     ssm = boto3.client("ssm", region_name=region_name)
     ec2 = boto3.client("ec2", region_name=region_name)
 
     # 1. Locate ANY instance with your Name tag
     filters = [
-        {'Name': 'tag:Name', 'Values': ['alpaca-websocket-ingest']}
+        {'Name': 'tag:Name', 'Values': [instance_name]}
     ]
     resp = ec2.describe_instances(Filters=filters)
     instances = [
@@ -19,7 +22,7 @@ def lambda_handler(event, context):
         for inst in r.get("Instances", [])
     ]
     if not instances:
-        raise Exception("No EC2 found with tag Name=alpaca-websocket-ingest")
+        raise Exception(f"No EC2 found with tag Name={instance_name}")
 
     inst = instances[0]
     instance_id = inst["InstanceId"]

@@ -4,14 +4,17 @@ import boto3
 
 def lambda_handler(event, context):
     region = os.environ.get("AWS_REGION", "us-east-1")
+    environment = os.environ.get("ENVIRONMENT", "qa")
+    ingest_instance_name = f"alpaca-websocket-ingest-{environment}"
+    
     ec2 = boto3.client("ec2", region_name=region)
     ssm = boto3.client("ssm", region_name=region)
 
     # ─── 1) FIND INGEST NODE ────────────────────────────────────────────────
-    ingest_tag = {'Name': 'tag:Name', 'Values': ['alpaca-websocket-ingest']}
+    ingest_tag = {'Name': 'tag:Name', 'Values': [ingest_instance_name]}
     all_ingest = ec2.describe_instances(Filters=[ingest_tag]).get('Reservations', [])
     if not all_ingest:
-        raise Exception("No EC2 found with tag Name=alpaca-websocket-ingest")
+        raise Exception(f"No EC2 found with tag Name={ingest_instance_name}")
     ingest_inst = all_ingest[0]['Instances'][0]
     ingest_id   = ingest_inst['InstanceId']
     ingest_state = ingest_inst['State']['Name']
@@ -33,10 +36,11 @@ def lambda_handler(event, context):
         raise Exception("Ingest node has no PublicIpAddress")
 
     # ─── 4) FIND ALL TRADING SERVERS ─────────────────────────────────────
-    trade_tag = {'Name': 'tag:Name', 'Values': ['trading-server*']}
+    trading_server_pattern = f"trading-server-{environment}-*"
+    trade_tag = {'Name': 'tag:Name', 'Values': [trading_server_pattern]}
     all_trade = ec2.describe_instances(Filters=[trade_tag]).get('Reservations', [])
     if not all_trade:
-        raise Exception("No EC2 found with tag Name=trading-server*")
+        raise Exception(f"No EC2 found with tag Name={trading_server_pattern}")
     trade_insts = [i
                for r in all_trade
                for i in r['Instances']
