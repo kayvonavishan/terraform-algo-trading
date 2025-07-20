@@ -3,11 +3,16 @@ import boto3
 
 def lambda_handler(event, context):
     region = os.environ.get("AWS_REGION", "us-east-1")
+    environment = os.environ.get("ENVIRONMENT", "qa")
+    
     ec2 = boto3.client("ec2", region_name=region)
 
     # Filter instances by tags for trading servers and ingest node
+    trading_server_pattern = f"trading-server-{environment}-*"
+    ingest_instance_name = f"alpaca-websocket-ingest-{environment}"
+    
     filters = [
-        {"Name": "tag:Name", "Values": ["trading-server*", "alpaca-websocket-ingest"]}
+        {"Name": "tag:Name", "Values": [trading_server_pattern, ingest_instance_name]}
     ]
     reservations = ec2.describe_instances(Filters=filters).get("Reservations", [])
     # Collect instance IDs that are not already stopped or stopping
