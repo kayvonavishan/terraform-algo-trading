@@ -43,18 +43,24 @@ resource "aws_iam_policy" "lambda_policy" {
       ],
       "Resource": "arn:aws:logs:*:*:*"
     },
-    {
+    {                         # <<‑‑ EC2 section: add two actions
       "Sid": "EC2Instances",
       "Effect": "Allow",
-      "Action": ["ec2:DescribeInstances", "ec2:StartInstances"],
+      "Action": [
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceStatus",   // NEW
+        "ec2:StartInstances",
+        "ec2:StopInstances"             // NEW
+      ],
       "Resource": "*"
     },
-    {
+    {                         # <<‑‑ SSM section: add ListCommandInvocations
       "Sid": "SSMAccess",
       "Effect": "Allow",
       "Action": [
         "ssm:SendCommand",
-        "ssm:GetCommandInvocation"
+        "ssm:GetCommandInvocation",
+        "ssm:ListCommandInvocations"    // NEW
       ],
       "Resource": "*"
     },
