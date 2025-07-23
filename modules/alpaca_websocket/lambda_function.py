@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Lambda: start the Alpaca websocket‑ingest EC2 instance, be sure it passes
-*both* EC2 status checks (system + instance), retry once with stop/start,
-then run a shell script via SSM.
+Lambda: start the Alpaca websocket‑ingest EC2 instance, verify both EC2 status
+checks are OK, retry up to <max_retries> times with a stop/start if necessary,
+then run a shell script through SSM.
 """
 
 import os
@@ -11,16 +11,12 @@ import boto3
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Helper ─ wait until both reachability checks are OK
+# Helpers
 # ──────────────────────────────────────────────────────────────────────────────
 def wait_for_status_ok(ec2, instance_ids, *, max_minutes=5, delay=10):
-    """
-    Poll `describe_instance_status` until both SystemStatus and InstanceStatus
-    are "ok" (or until the timeout).  Returns (ok_ids, bad_ids).
-    """
+    """Return (ok_ids, bad_ids) after polling reachability checks."""
     deadline = time.time() + max_minutes * 60
-    remaining = set(instance_ids)
-    ok_ids = set()
+    remaining, ok_ids = set(instance_ids), set()
 
     while remaining and time.time() < deadline:
         statuses = ec2.describe_instance_status(
@@ -39,12 +35,35 @@ def wait_for_status_ok(ec2, instance_ids, *, max_minutes=5, delay=10):
         if remaining:
             time.sleep(delay)
 
-    bad_ids = list(remaining)
-    return list(ok_ids), bad_ids
+    return list(ok_ids), list(remaining)
+
+
+def ensure_healthy(ec2, iid, max_retries=2):
+    """
+    Make sure <iid> passes both reachability checks.
+    Performs up to <max_retries> stop/start cycles in addition to the
+    *initial* start.  Raises if still unhealthy.
+    """
+    attempt = 0
+    while attempt <= max_retries:
+        ok, bad = wait_for_status_ok(ec2, [iid])
+        if not bad:                       # healthy
+            return
+        attempt += 1
+        if attempt > max_retries:         # out of retries
+            break
+        # stop → start on fresh hardware
+        ec2.stop_instances(InstanceIds=bad)
+        ec2.get_waiter("instance_stopped").wait(InstanceIds=bad)
+        ec2.start_instances(InstanceIds=bad)
+
+    raise RuntimeError(
+        f"Instance {iid} failed EC2 status checks after {max_retries} retry cycles"
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Main Lambda entry‑point
+# Lambda entry‑point
 # ──────────────────────────────────────────────────────────────────────────────
 def lambda_handler(event, context):
     region_name = os.environ.get("AWS_REGION", "us-east-1")
@@ -54,7 +73,7 @@ def lambda_handler(event, context):
     ec2 = boto3.client("ec2", region_name=region_name)
     ssm = boto3.client("ssm", region_name=region_name)
 
-    # 1) locate the ingest instance by Name tag
+    # 1) locate ingest instance
     resp = ec2.describe_instances(
         Filters=[{"Name": "tag:Name", "Values": [instance_name]}]
     )
@@ -73,19 +92,10 @@ def lambda_handler(event, context):
     if inst["State"]["Name"] != "running":
         ec2.start_instances(InstanceIds=[iid])
 
-    # 3) wait for both EC2 checks to be OK
-    ok, bad = wait_for_status_ok(ec2, [iid])
+    # 3) ensure health, allowing two retry cycles
+    ensure_healthy(ec2, iid, max_retries=2)
 
-    # 4) retry once (stop → start) if still bad
-    if bad:
-        ec2.stop_instances(InstanceIds=bad)
-        ec2.get_waiter("instance_stopped").wait(InstanceIds=bad)
-        ec2.start_instances(InstanceIds=bad)
-        _, still_bad = wait_for_status_ok(ec2, bad, max_minutes=6)
-        if still_bad:
-            raise RuntimeError(f"Ingest instance {still_bad} failed EC2 health checks")
-
-    # 5) run your script via SSM
+    # 4) run your script via SSM
     script_path = os.path.join(os.getcwd(), "run.sh")
     with open(script_path) as f:
         commands = f.read().splitlines()
@@ -98,7 +108,7 @@ def lambda_handler(event, context):
     )
     cmd_id = cmd_resp["Command"]["CommandId"]
 
-    time.sleep(2)  # brief pause before first poll
+    time.sleep(2)
     inv = ssm.get_command_invocation(CommandId=cmd_id, InstanceId=iid)
 
     return {
