@@ -11,8 +11,11 @@ def lambda_handler(event, context):
     ssm = boto3.client("ssm", region_name=region)
 
     # ─── 1) FIND INGEST NODE ────────────────────────────────────────────────
-    ingest_tag = {'Name': 'tag:Name', 'Values': [ingest_instance_name]}
-    all_ingest = ec2.describe_instances(Filters=[ingest_tag]).get('Reservations', [])
+    ingest_filters = [
+        {'Name': 'tag:Name', 'Values': [ingest_instance_name]},
+        {'Name': 'instance-state-name', 'Values': ['pending', 'running', 'shutting-down', 'stopping', 'stopped']}
+    ]
+    all_ingest = ec2.describe_instances(Filters=ingest_filters).get('Reservations', [])
     if not all_ingest:
         raise Exception(f"No EC2 found with tag Name={ingest_instance_name}")
     ingest_inst = all_ingest[0]['Instances'][0]
@@ -29,7 +32,7 @@ def lambda_handler(event, context):
         time.sleep(120)
 
     # ─── 3) RE-DESCRIBE TO GET PUBLIC IP ──────────────────────────────────
-    ingest_inst = ec2.describe_instances(Filters=[ingest_tag])\
+    ingest_inst = ec2.describe_instances(Filters=ingest_filters)\
                     ['Reservations'][0]['Instances'][0]
     nats_ip = ingest_inst.get('PublicIpAddress')
     if not nats_ip:
