@@ -7,8 +7,8 @@ key_name    = "algo-deployment"
 
 # Instance types optimized for development (smallest/cheapest)
 instance_types = {
-  websocket_server = "t2.micro"
-  trading_server   = "t2.micro"
+  websocket_server = "t2.small"
+  trading_server   = "t2.small"
 }
 
 # AMI name filters - use development or latest versions
