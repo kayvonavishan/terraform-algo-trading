@@ -114,7 +114,7 @@ def lambda_handler(event, context):
     ensure_healthy(ec2, [ingest_id], max_retries=max_retries, wait_minutes=6)
 
     # refresh description to get current Public IP
-    ingest_inst = ec2.describe_instances(Filters=[ingest_filters])["Reservations"][0]["Instances"][0]
+    ingest_inst = ec2.describe_instances(Filters=ingest_filters)["Reservations"][0]["Instances"][0]
     nats_ip = ingest_inst.get("PublicIpAddress")
     if not nats_ip:
         raise RuntimeError("Ingest node has no PublicIpAddress")
