@@ -17,5 +17,5 @@ ami_name_filters = {
   trading_server   = "trading-server*"
 }
 
-# Git branch for development - use main branch for latest stable code
-git_branch = "main"
+# Git branch for development - use feature/dev branch for development work
+git_branch = "feature/dev"
