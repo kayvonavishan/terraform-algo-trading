@@ -186,6 +186,13 @@ resource "aws_instance" "model_instance" {
     "sg-06612080dc355b148",
   ]
 
+  # Configure root volume to delete on termination
+  root_block_device {
+    delete_on_termination = true
+    volume_type           = "gp3"
+    volume_size           = 14
+  }
+
   # User data script that outputs configuration details to a file in /home/ec2-user/deployment_config.txt
   user_data = <<-EOF
     #!/bin/bash
