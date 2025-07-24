@@ -17,5 +17,5 @@ ami_name_filters = {
   trading_server   = "trading-server*"
 }
 
-# Git branch for production - use main branch for stable production code
-git_branch = "main"
+# Git branch for production - use live branch for production code
+git_branch = "live"

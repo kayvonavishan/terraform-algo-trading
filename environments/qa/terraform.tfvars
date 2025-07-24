@@ -17,5 +17,5 @@ ami_name_filters = {
   trading_server   = "trading-server*"
 }
 
-# Git branch for QA testing - use feature branch for testing new features
-git_branch = "feature/wire-streaming-val"
+# Git branch for QA testing - use main branch for stable testing
+git_branch = "main"
