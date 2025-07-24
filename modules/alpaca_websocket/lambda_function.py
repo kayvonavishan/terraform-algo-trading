@@ -73,10 +73,13 @@ def lambda_handler(event, context):
     ec2 = boto3.client("ec2", region_name=region_name)
     ssm = boto3.client("ssm", region_name=region_name)
 
-    # 1) locate ingest instance
-    resp = ec2.describe_instances(
-        Filters=[{"Name": "tag:Name", "Values": [instance_name]}]
-    )
+    # 1. Locate ANY instance with your Name tag (exclude terminated instances)
+    filters = [
+        {'Name': 'tag:Name', 'Values': [instance_name]},
+        {'Name': 'instance-state-name', 'Values': ['pending', 'running', 'shutting-down', 'stopping', 'stopped']}
+    ]
+    resp = ec2.describe_instances(Filters=filters)
+
     instances = [
         i
         for r in resp.get("Reservations", [])
