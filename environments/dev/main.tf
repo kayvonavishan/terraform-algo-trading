@@ -69,6 +69,8 @@ module "trading_server" {
   websocket_instance_name = "alpaca-websocket-ingest-${var.environment}"
   enable_eventbridge      = false  # Disable EventBridge for dev
   git_branch              = var.git_branch
+
+  depends_on = [aws_s3_bucket.model_bucket]
 }
 
 # Note: trading_server_shutdown module is intentionally omitted for dev environment
