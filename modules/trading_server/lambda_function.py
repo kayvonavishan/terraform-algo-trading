@@ -85,13 +85,27 @@ def lambda_handler(event, context):
     ec2 = boto3.client("ec2", region_name=region)
     ssm = boto3.client("ssm", region_name=region)
 
-    # ─── 1) locate ingest node ───────────────────────────────────────────────
-    ingest_tag = {"Name": "tag:Name", "Values": [ingest_name]}
-    ingest_res = ec2.describe_instances(Filters=[ingest_tag])["Reservations"]
-    if not ingest_res:
-        raise RuntimeError(f"No EC2 found with tag Name={ingest_name}")
-    ingest_inst = ingest_res[0]["Instances"][0]
-    ingest_id   = ingest_inst["InstanceId"]
+# ─── 1) locate ingest node ───────────────────────────────────────────────
+ingest_filters = [
+    {"Name": "tag:Name",            "Values": [ingest_name]},
+    # exclude terminated / shutting‑down / terminating
+    {"Name": "instance-state-name", "Values": [
+        "pending", "running", "stopping", "stopped"
+    ]},
+]
+ingest_res = ec2.describe_instances(Filters=ingest_filters)["Reservations"]
+
+ingest_insts = [i for r in ingest_res for i in r["Instances"]]
+if not ingest_insts:
+    raise RuntimeError(f"No *non‑terminated* EC2 found with tag Name={ingest_name}")
+
+# if more than one survives (e.g. AWS is still cleaning up a duplicate),
+# prefer an already‑running copy; otherwise just take the newest launch.
+ingest_inst = (
+    next((i for i in ingest_insts if i["State"]["Name"] == "running"), None)
+    or max(ingest_insts, key=lambda x: x["LaunchTime"])
+)
+ingest_id = ingest_inst["InstanceId"]
 
     # ─── 2) power on ingest node if needed, then ensure health ───────────────
     if ingest_inst["State"]["Name"] != "running":
