@@ -19,3 +19,13 @@ output "instance_name" {
   description = "Name tag of the alpaca websocket instance"
   value       = aws_instance.alpaca_instance.tags.Name
 }
+
+output "lambda_function_name" {
+  description = "Name of the Alpaca websocket Lambda function"
+  value       = aws_lambda_function.alpaca_websocket_lambda.function_name
+}
+
+output "lambda_role_name" {
+  description = "IAM role name used by the Alpaca websocket Lambda"
+  value       = aws_iam_role.lambda_role.name
+}

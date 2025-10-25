@@ -50,4 +50,15 @@ variable "git_branch" {
   default     = "feature/wire-streaming-val"
 }
 
+variable "alpaca_lambda_function_name" {
+  description = "Name of the Alpaca websocket Lambda function (required when enable_eventbridge is true)"
+  type        = string
+  default     = null
+}
+
+variable "alpaca_lambda_role_name" {
+  description = "IAM role name of the Alpaca websocket Lambda (required when enable_eventbridge is true)"
+  type        = string
+  default     = null
+}
 

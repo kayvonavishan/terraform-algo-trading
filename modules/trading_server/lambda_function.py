@@ -1,172 +1,157 @@
 #!/usr/bin/env python3
-"""
-Start the Alpaca ingest node and all trading‑server EC2 instances,
-verify they pass both EC2 status checks, retry up to <max_retries>
-stop/start cycles if necessary, and finally dispatch a shell script
-via SSM.
-"""
+"""Start the ingest node and trading servers, ensure health, then run run.sh via SSM."""
 
 import os
 import time
 import boto3
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Helper 1: wait until *both* reachability checks are OK
-# ──────────────────────────────────────────────────────────────────────────────
-def wait_for_status_ok(ec2, instance_ids, *, max_minutes=5, delay=10):
-    """
-    Poll `describe_instance_status` until both SystemStatus and InstanceStatus
-    are "ok" for every instance or until timeout.
-    Returns (ok_ids, bad_ids).
-    """
+def wait_for_status_ok(ec2_client, instance_ids, *, max_minutes=5, delay=10):
+    """Poll describe_instance_status until both status checks pass for each instance."""
     deadline = time.time() + max_minutes * 60
     remaining = set(instance_ids)
-    ok_ids = set()
+    healthy = set()
 
     while remaining and time.time() < deadline:
-        statuses = ec2.describe_instance_status(
+        response = ec2_client.describe_instance_status(
             InstanceIds=list(remaining),
             IncludeAllInstances=True,
-        )["InstanceStatuses"]
+        )
+        statuses = response["InstanceStatuses"]
 
-        for st in statuses:
-            iid = st["InstanceId"]
-            sys_ok  = st["SystemStatus"]["Status"]  == "ok"
-            inst_ok = st["InstanceStatus"]["Status"] == "ok"
+        for status in statuses:
+            instance_id = status["InstanceId"]
+            sys_ok = status["SystemStatus"]["Status"] == "ok"
+            inst_ok = status["InstanceStatus"]["Status"] == "ok"
             if sys_ok and inst_ok:
-                ok_ids.add(iid)
-                remaining.discard(iid)
+                healthy.add(instance_id)
+                remaining.discard(instance_id)
 
         if remaining:
             time.sleep(delay)
 
-    return list(ok_ids), list(remaining)
+    return list(healthy), list(remaining)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Helper 2: ensure health with multiple stop/start retries
-# ──────────────────────────────────────────────────────────────────────────────
-def ensure_healthy(ec2, instance_ids, *, max_retries=2, wait_minutes=5):
+def ensure_healthy(ec2_client, instance_ids, *, max_retries=2, wait_minutes=5):
     """
-    Make sure every ID in <instance_ids> passes both reachability checks.
-    Performs up to <max_retries> stop/start cycles.  Returns the list of
-    healthy IDs; raises if any remain bad after all retries.
+    Ensure each instance passes both status checks.
+    Performs up to max_retries stop/start cycles for unhealthy instances.
     """
     remaining = list(instance_ids)
 
-    for attempt in range(max_retries + 1):  # initial attempt + N retries
-        ok, bad = wait_for_status_ok(ec2, remaining, max_minutes=wait_minutes)
-        if not bad:
-            return ok  # all healthy
+    for attempt in range(max_retries + 1):
+        ok_ids, bad_ids = wait_for_status_ok(
+            ec2_client,
+            remaining,
+            max_minutes=wait_minutes,
+        )
+        if not bad_ids:
+            return ok_ids
 
         if attempt == max_retries:
-            raise RuntimeError(f"Instances {bad} failed EC2 health checks")
+            raise RuntimeError(f"Instances {bad_ids} failed EC2 health checks")
 
-        # stop → start the bad ones on fresh hardware, then loop again
-        ec2.stop_instances(InstanceIds=bad)
-        ec2.get_waiter("instance_stopped").wait(InstanceIds=bad)
-        ec2.start_instances(InstanceIds=bad)
-        remaining = bad  # only re‑check the ones that were bad
+        ec2_client.stop_instances(InstanceIds=bad_ids)
+        ec2_client.get_waiter("instance_stopped").wait(InstanceIds=bad_ids)
+        ec2_client.start_instances(InstanceIds=bad_ids)
+        remaining = bad_ids
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Lambda entry‑point
-# ──────────────────────────────────────────────────────────────────────────────
 def lambda_handler(event, context):
-    # ── config via env vars ──────────────────────────────────────────────────
-    region       = os.environ.get("AWS_REGION", "us-east-1")
-    environment  = os.environ.get("ENVIRONMENT",  "qa")
-    max_retries  = int(os.environ.get("MAX_RETRIES", "2"))  # optional override
+    """Lambda entry point."""
+    region = os.environ.get("AWS_REGION", "us-east-1")
+    environment = os.environ.get("ENVIRONMENT", "qa")
+    max_retries = int(os.environ.get("MAX_RETRIES", "2"))
 
-    ingest_name  = f"alpaca-websocket-ingest-{environment}"
-    trade_pattern = f"trading-server-{environment}-*"
+    ingest_instance_name = os.environ.get("WEBSOCKET_INSTANCE_NAME")
+    if not ingest_instance_name:
+        ingest_instance_name = f"alpaca-websocket-ingest-{environment}"
+
+    trade_prefix = os.environ.get("TRADING_SERVER_NAME_PREFIX")
+    if not trade_prefix:
+        trade_prefix = f"trading-server-{environment}-"
+    trade_pattern = f"{trade_prefix}*"
 
     ec2 = boto3.client("ec2", region_name=region)
     ssm = boto3.client("ssm", region_name=region)
 
-    # ─── 1) locate ingest node ───────────────────────────────────────────────
     ingest_filters = [
-        {"Name": "tag:Name",            "Values": [ingest_name]},
-        # exclude terminated / shutting‑down / terminating
-        {"Name": "instance-state-name", "Values": [
-            "pending", "running", "stopping", "stopped"
-        ]},
+        {"Name": "tag:Name", "Values": [ingest_instance_name]},
+        {"Name": "instance-state-name", "Values": ["pending", "running", "stopping", "stopped"]},
     ]
-    ingest_res = ec2.describe_instances(Filters=ingest_filters)["Reservations"]
+    ingest_reservations = ec2.describe_instances(Filters=ingest_filters)["Reservations"]
+    ingest_instances = [inst for res in ingest_reservations for inst in res["Instances"]]
+    if not ingest_instances:
+        raise RuntimeError(f"No EC2 instances with tag Name={ingest_instance_name}")
 
-    ingest_insts = [i for r in ingest_res for i in r["Instances"]]
-    if not ingest_insts:
-        raise RuntimeError(f"No *non‑terminated* EC2 found with tag Name={ingest_name}")
-
-    # if more than one survives (e.g. AWS is still cleaning up a duplicate),
-    # prefer an already‑running copy; otherwise just take the newest launch.
-    ingest_inst = (
-        next((i for i in ingest_insts if i["State"]["Name"] == "running"), None)
-        or max(ingest_insts, key=lambda x: x["LaunchTime"])
+    ingest_instance = (
+        next((inst for inst in ingest_instances if inst["State"]["Name"] == "running"), None)
+        or max(ingest_instances, key=lambda inst: inst["LaunchTime"])
     )
-    ingest_id = ingest_inst["InstanceId"]
+    ingest_id = ingest_instance["InstanceId"]
 
-    # ─── 2) power on ingest node if needed, then ensure health ───────────────
-    if ingest_inst["State"]["Name"] != "running":
+    if ingest_instance["State"]["Name"] != "running":
         ec2.start_instances(InstanceIds=[ingest_id])
 
     ensure_healthy(ec2, [ingest_id], max_retries=max_retries, wait_minutes=6)
 
-    # refresh description to get current Public IP
-    ingest_inst = ec2.describe_instances(Filters=ingest_filters)["Reservations"][0]["Instances"][0]
-    nats_ip = ingest_inst.get("PublicIpAddress")
+    ingest_instance = ec2.describe_instances(Filters=ingest_filters)["Reservations"][0]["Instances"][0]
+    nats_ip = ingest_instance.get("PublicIpAddress")
     if not nats_ip:
-        raise RuntimeError("Ingest node has no PublicIpAddress")
+        raise RuntimeError("Ingest node does not have a public IP address")
 
-    # ─── 3) find trading servers ─────────────────────────────────────────────
-    trade_tag = {"Name": "tag:Name", "Values": [trade_pattern]}
-    trade_res = ec2.describe_instances(Filters=[trade_tag])["Reservations"]
-    if not trade_res:
-        raise RuntimeError(f"No EC2 found with tag Name={trade_pattern}")
+    trade_filters = [{"Name": "tag:Name", "Values": [trade_pattern]}]
+    trade_reservations = ec2.describe_instances(Filters=trade_filters)["Reservations"]
+    if not trade_reservations:
+        raise RuntimeError(f"No EC2 instances with tag Name={trade_pattern}")
 
-    trade_insts = [
-        i for r in trade_res for i in r["Instances"]
-        if i["State"]["Name"] not in ("terminated", "shutting-down", "terminating")
+    trade_instances = [
+        inst
+        for res in trade_reservations
+        for inst in res["Instances"]
+        if inst["State"]["Name"] not in ("terminated", "shutting-down", "terminating")
     ]
-    if not trade_insts:
-        raise RuntimeError("No valid (non‑terminated) trading servers found")
+    if not trade_instances:
+        raise RuntimeError("No non-terminated trading servers found")
 
-    # ─── 4) start stopped servers ────────────────────────────────────────────
-    to_start = [i["InstanceId"] for i in trade_insts if i["State"]["Name"] == "stopped"]
+    to_start = [inst["InstanceId"] for inst in trade_instances if inst["State"]["Name"] == "stopped"]
     if to_start:
         ec2.start_instances(InstanceIds=to_start)
 
-    # ─── 5) ensure *all* trading servers are healthy ────────────────────────
-    all_ids = [i["InstanceId"] for i in trade_insts]  # running + newly started
+    all_trade_ids = [inst["InstanceId"] for inst in trade_instances]
     healthy_trade_ids = ensure_healthy(
-        ec2, all_ids, max_retries=max_retries, wait_minutes=6
+        ec2,
+        all_trade_ids,
+        max_retries=max_retries,
+        wait_minutes=6,
     )
 
-    # ─── 6) dispatch script via SSM ──────────────────────────────────────────
     script_path = os.path.join(os.getcwd(), "run.sh")
-    with open(script_path) as f:
-        script_lines = f.read().splitlines()
+    with open(script_path, "r", encoding="utf-8") as script_file:
+        script_lines = script_file.read().splitlines()
 
     commands = [f"export NATS_PUBLIC_IP={nats_ip}", *script_lines]
 
-    cmd_resp = ssm.send_command(
+    response = ssm.send_command(
         InstanceIds=healthy_trade_ids,
         DocumentName="AWS-RunShellScript",
         Parameters={"commands": commands},
         TimeoutSeconds=120,
     )
-    cmd_id = cmd_resp["Command"]["CommandId"]
+    command_id = response["Command"]["CommandId"]
 
-    # ─── 7) gather results ──────────────────────────────────────────────────
     time.sleep(2)
     results = {}
-    for iid in healthy_trade_ids:
-        inv = ssm.get_command_invocation(CommandId=cmd_id, InstanceId=iid)
-        results[iid] = {
-            "Status": inv["Status"],
-            "Stdout": inv.get("StandardOutputContent", ""),
-            "Stderr": inv.get("StandardErrorContent", ""),
+    for instance_id in healthy_trade_ids:
+        invocation = ssm.get_command_invocation(
+            CommandId=command_id,
+            InstanceId=instance_id,
+        )
+        results[instance_id] = {
+            "Status": invocation["Status"],
+            "Stdout": invocation.get("StandardOutputContent", ""),
+            "Stderr": invocation.get("StandardErrorContent", ""),
         }
 
     return {"statusCode": 200, "body": results}

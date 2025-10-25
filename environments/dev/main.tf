@@ -38,7 +38,9 @@ module "trading_server" {
   instance_type           = var.instance_types.trading_server
   key_name                = var.key_name
   ami_name_filter         = var.ami_name_filters.trading_server
-  websocket_instance_name = "alpaca-websocket-ingest-${var.environment}"
+  websocket_instance_name = module.alpaca_websocket.instance_name
+  alpaca_lambda_function_name = module.alpaca_websocket.lambda_function_name
+  alpaca_lambda_role_name     = module.alpaca_websocket.lambda_role_name
   enable_eventbridge      = false  # Disable EventBridge for dev
   git_branch              = var.git_branch
 }

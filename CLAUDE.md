@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is a Terraform-based infrastructure project for an algorithmic trading system on AWS. The system uses a **modular multi-environment architecture** supporting both QA and production deployments.
+This is a Terraform-based infrastructure project for an algorithmic trading system on AWS. The system uses a **modular multi-environment architecture** supporting dev, QA, and production deployments.
 
 ### Project Structure
 ```
@@ -14,6 +14,7 @@ terraform-algo-trading/
 │   ├── trading_server/        # Trading server module
 │   └── trading_server_shutdown/ # Automated shutdown module
 ├── environments/              # Environment-specific configurations
+│   ├── dev/                  # Development environment
 │   ├── qa/                   # QA environment
 │   └── prod/                 # Production environment
 ├── shared/                   # Common variable definitions
@@ -30,10 +31,11 @@ terraform-algo-trading/
 - **gpu_instance/**: GPU-enabled instances for model training - standalone component
 
 ### Multi-Environment Support
+- **Development Environment**: `algo-model-deploy-dev` S3 bucket, manual-only Lambdas (no EventBridge) for experimental work
 - **QA Environment**: `algo-model-deploy` S3 bucket, smaller instance types
 - **Production Environment**: `algo-model-deploy-prod` S3 bucket, larger instance types
 - **Independent State**: Each environment maintains separate Terraform state
-- **Environment Promotion**: Test configurations in QA before promoting to production
+- **Environment Promotion**: Test configurations in QA (after dev) before promoting to production
 
 ### Key Technologies
 - **Terraform**: Infrastructure as Code with modular design
@@ -46,6 +48,12 @@ terraform-algo-trading/
 
 ### Environment-Specific Deployment
 ```bash
+# Work in the dev environment when testing new module changes
+cd environments/dev
+terraform init
+terraform plan
+terraform apply
+
 # Deploy to QA environment
 cd environments/qa
 terraform init
@@ -108,6 +116,7 @@ Each module follows this standard pattern:
 ## Key Configuration Files
 
 ### Environment Configurations
+- `environments/dev/terraform.tfvars`: Development defaults (no scheduler/shutdown)
 - `environments/qa/terraform.tfvars`: QA-specific settings
 - `environments/prod/terraform.tfvars`: Production-specific settings
 - `shared/common-variables.tf`: Shared variable definitions and validation
@@ -123,22 +132,26 @@ Each module follows this standard pattern:
 ## Deployment Workflow
 
 1. **Model Artifact Deployment** (external process):
+   - Dev: Upload to `algo-model-deploy-dev/models/`
    - QA: Upload to `algo-model-deploy/models/`
    - Prod: Upload to `algo-model-deploy-prod/models/`
 
 2. **Infrastructure Deployment**:
    ```bash
+   # Development smoke test
+   cd environments/dev && terraform apply
+
    # QA Testing
-   cd environments/qa && terraform apply
+   cd ../qa && terraform apply
    
    # Production Deployment  
-   cd environments/prod && terraform apply
+   cd ../prod && terraform apply
    ```
 
 3. **Environment Promotion**:
-   - Test new AMIs/configurations in QA first
-   - Copy working configurations to production tfvars
-   - Deploy to production after QA validation
+   - Iterate in dev (new AMIs/config) before promoting to QA
+   - Copy working Dev settings into QA tfvars, validate
+   - Copy validated QA settings into Prod tfvars before final deployment
 
 ## Important Notes
 

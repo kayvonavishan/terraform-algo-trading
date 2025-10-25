@@ -146,8 +146,10 @@ resource "aws_lambda_function" "trading_server_lambda" {
 
   environment {
     variables = {
-      GITHUB_SECRET_ID = "github/ssh-key"
-      ENVIRONMENT     = var.environment
+      GITHUB_SECRET_ID           = "github/ssh-key"
+      ENVIRONMENT                = var.environment
+      WEBSOCKET_INSTANCE_NAME    = var.websocket_instance_name
+      TRADING_SERVER_NAME_PREFIX = "trading-server-${var.environment}-"
       # Optionally override AWS_REGION if needed:
       # AWS_REGION = "us-east-1"
     }

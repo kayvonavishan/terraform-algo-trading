@@ -126,8 +126,7 @@ Shell (`run.sh` on EC2 via SSM)
 ## Quick References
 
 - Websocket module vars: `aws_region`, `environment`, `bucket_name`, `instance_type`, `key_name`, `ami_name_filter`, `enable_eventbridge`, `git_branch`.
-- Trading server module vars: `aws_region`, `environment`, `bucket_name`, `instance_type`, `key_name`, `ami_name_filter`, `websocket_instance_name`, `enable_eventbridge`, `git_branch`.
+- Trading server module vars: `aws_region`, `environment`, `bucket_name`, `instance_type`, `key_name`, `ami_name_filter`, `websocket_instance_name`, `enable_eventbridge`, `git_branch`, `alpaca_lambda_function_name`, `alpaca_lambda_role_name`.
 - Environments set defaults via `terraform.tfvars` and may override `git_branch` per env.
 
 Following the above keeps environments consistent and avoids drift between modules and legacy stacks. When in doubt: prefer minimal, targeted changes in `modules/`, validate with `plan`, and ask before altering shared networking or naming patterns.
-
