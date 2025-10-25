@@ -106,9 +106,9 @@ flowchart LR
   end
   vars --> maintf
   tfvars --> maintf
-  maintf -->|module \"../../modules/alpaca_websocket\"| Alpaca[Websocket Module]
-  maintf -->|module \"../../modules/trading_server\"| Trading[Trading Module]
-  maintf -->|module \"../../modules/trading_server_shutdown\"| Shutdown[Shutdown Module]
+  maintf -->|module ../../modules/alpaca_websocket| Alpaca[Websocket Module]
+  maintf -->|module ../../modules/trading_server| Trading[Trading Module]
+  maintf -->|module ../../modules/trading_server_shutdown| Shutdown[Shutdown Module]
 ```
 
 ### Environment matrix
