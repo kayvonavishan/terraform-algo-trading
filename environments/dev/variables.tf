@@ -51,5 +51,5 @@ variable "ami_name_filters" {
 variable "git_branch" {
   description = "Git branch to checkout for algo-modeling-v2 repository"
   type        = string
-  default     = "main"
+  default     = "feature/wire-streaming-val"
 }
