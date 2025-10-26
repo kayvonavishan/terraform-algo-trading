@@ -18,4 +18,4 @@ ami_name_filters = {
 }
 
 # Git branch for development - use feature/dev branch for development work
-git_branch = "feature/dev"
+git_branch = "feature/wire-streaming-val"

@@ -6,7 +6,7 @@ resource "aws_iam_role_policy" "alpaca_websocket_invoke_trading_policy" {
   count = var.enable_eventbridge ? 1 : 0
   
   name = "alpaca-websocket-invoke-trading-${var.environment}"
-  role = aws_iam_role.lambda_role.id   # this is the role for AlpacaWebsocketLambda
+  role = var.alpaca_lambda_role_name   # this is the role for AlpacaWebsocketLambda
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -28,7 +28,7 @@ resource "aws_iam_role_policy" "alpaca_websocket_invoke_trading_policy" {
 resource "aws_lambda_function_event_invoke_config" "chain_alpaca_to_trading" {
   count = var.enable_eventbridge ? 1 : 0
   
-  function_name = "AlpacaWebsocketLambda_${var.environment}"
+  function_name = var.alpaca_lambda_function_name
 
   # optional: keep failed events for 1h, never retry
   maximum_event_age_in_seconds = 3600

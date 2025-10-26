@@ -16,7 +16,7 @@ aws secretsmanager get-secret-value \
 
 export MYSSHKEY=$(jq -r '.["private-key"]' ~/github_token)
 
-git config set --global remote.origin.url "https://kayvonavishan:${MYSSHKEY}@github.com/kayvonavishan/algo-modeling-v2.git"
+#git config set --global remote.origin.url "https://kayvonavishan:${MYSSHKEY}@github.com/kayvonavishan/algo-modeling-v2.git"
 
 
 # Change to the home directory.
