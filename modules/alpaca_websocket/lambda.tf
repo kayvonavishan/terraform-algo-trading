@@ -156,11 +156,3 @@ resource "aws_lambda_function" "alpaca_websocket_lambda" {
 }
 
 
-###############################
-# (Optional) Outputs
-###############################
-
-output "lambda_function_name" {
-  value = aws_lambda_function.alpaca_websocket_lambda.function_name
-}
-
