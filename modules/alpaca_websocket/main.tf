@@ -69,7 +69,7 @@ resource "aws_iam_role_policy" "s3_config_read" {
       "Sid": "AllowGetConfigObject",
       "Effect": "Allow",
       "Action": ["s3:GetObject"],
-      "Resource": "arn:aws:s3:::${var.bucket_name}/configs/sandbox_symbols.txt"
+      "Resource": "arn:aws:s3:::${var.bucket_name}/configs/*"
     },
     {
       "Sid": "AllowListConfigPrefix",
