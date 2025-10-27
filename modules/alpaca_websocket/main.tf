@@ -189,7 +189,8 @@ resource "aws_instance" "alpaca_instance" {
   # User data script that outputs configuration details to a file in /home/ec2-user/deployment_config.txt
   user_data = <<-EOF
     #!/bin/bash
-    pip install boto3 streamlit ##This should be apart of the AMI!
+    pip install boto3 ##This should be apart of the AMI!
+    pip install streamlit
     CONFIG_FILE="/home/ec2-user/deployment_config.txt"
 
     # Write or overwrite the configuration file with the deployment information.
